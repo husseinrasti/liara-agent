@@ -1,0 +1,15 @@
+node_modules/
+.next/
+.env
+.env.*
+!.env.example
+data/
+fixtures/liara/*.raw.json
+*.log
+.DS_Store
+*.tsbuildinfo
+coverage/
+dist/
+
+# hackathon intro video + extracted frames (third-party, large)
+video/
