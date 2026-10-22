@@ -1,0 +1,13 @@
+{
+  "name": "liara-agent-demo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Placeholder demo app (PRD-01). PRD-03 replaces it with the chaos demo app.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
