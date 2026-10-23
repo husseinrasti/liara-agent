@@ -16,7 +16,7 @@ causes_fa:
   - "برنامه هنگام شروع یا کمی بعد از آن با یک خطای کد از کار می‌افتد"
   - "یک وابستگی یا فایل لازم در محیط اجرا وجود ندارد"
 checks_fa:
-  - "وضعیت CrashLoopBackOff در نمونه‌های در حال اجرا"
+  - "وضعیت CrashLoopBackOff (کرش و راه‌اندازی پشت‌سرهم) در نمونه‌ها"
   - "ردپای خطا (stack trace) در لاگ‌ها"
 fixes:
   - id: rollback_if_recent_deploy
@@ -29,7 +29,7 @@ fixes:
   - id: restart
     tool: restart_app
     args_template: { appName: "{{app.name}}" }
-    title_fa: "ری‌استارت برنامه"
+    title_fa: "ری‌استارت سرویس"
     why_fa: "فقط اگر خطا گذرا باشد کمک می‌کند؛ معمولاً باید کد درست شود"
     priority: 3
 manual_steps_fa:

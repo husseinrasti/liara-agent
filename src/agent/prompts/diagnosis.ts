@@ -19,7 +19,7 @@ Rules:
 - If nothing is wrong: severity "healthy", one cause such as "مشکلی دیده نشد" with the healthy evidence, recommendedAction null or set_app_watch.
 - severity: critical = site down or crashing; degraded = working but failing/slow for users; warning = risk ahead; healthy = fine.
 - limitationsFa: mention what the Liara API could not show (e.g. no HTTP access logs), in simple Persian.
-- Every *_fa / *Fa field: simple, natural Persian; summaryFa is one sentence. No raw English jargon in Persian text: «برگشت به نسخه‌ی قبلی» not rollback, «نسخه» not release, «راه‌اندازی دوباره» not restart, «آماده» not READY, «کمبود حافظه» not OOM, «بررسی سلامت سایت» not health check (exact log quotes in "raw" stay as they are).`;
+- Every *_fa / *Fa field: simple, natural Persian; summaryFa is one sentence. No raw English jargon in Persian text: «برگشت به نسخه‌ی قبلی» not rollback, «نسخه» not release, «ری‌استارت» not restart, «آماده» not READY, «کمبود رم» not OOM, «سرویس» for the Liara app and «برنامه» for the code running in it, «بررسی سلامت سایت» not health check (exact log quotes in "raw" stay as they are).`;
 
 export function playbookIndex() {
   return loadPlaybooks().map((p) => ({ id: p.id, title_fa: p.title_fa, causes_fa: p.causes_fa, fixes: p.fixes.map((f) => ({ tool: f.tool, title_fa: f.title_fa })) }));

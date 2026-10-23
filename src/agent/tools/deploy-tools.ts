@@ -59,7 +59,7 @@ export const deployProjectTool = defineTool({
   input: DeployProjectInputSchema,
   risk: 1,
   category: 'deploy',
-  describeFa: (i) => `دیپلوی پروژه روی سرویس ${i.appName}`,
+  describeFa: (i) => `انتشار پروژه روی سرویس ${i.appName}`,
   redactInput: (i) => ({ ...i, envs: Object.fromEntries(Object.keys(i.envs ?? {}).map((k) => [k, '••••'])) }),
   consequencesFa: async (i, ctx) => {
     const exists = (await listApps(ctx.liara)).some((a) => a.project_id === i.appName);

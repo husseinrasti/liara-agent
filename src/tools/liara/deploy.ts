@@ -197,7 +197,7 @@ export const rollbackReleaseTool = defineTool({
     const sourceID = row?.sourceID ?? target.sourceID ?? undefined;
     if (!sourceID && !row) {
       return limitation(
-        `نسخه‌ی ${target.tag ?? target._id} از طریق این دستیار منتشر نشده و کد آن نزد ما نیست. API لیارا دکمه‌ی «برگشت به نسخه‌ی قبلی» ندارد؛ می‌توانیم کد سالم را دوباره دیپلوی کنیم.`,
+        `نسخه‌ی ${target.tag ?? target._id} از طریق این دستیار منتشر نشده و کد آن نزد ما نیست. API لیارا دکمه‌ی «برگشت به نسخه‌ی قبلی» ندارد؛ می‌توانیم کد سالم را دوباره منتشر کنیم.`,
         'rollback target source not available locally',
       );
     }

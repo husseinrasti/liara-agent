@@ -12,7 +12,7 @@ signals:
 causes_fa:
   - "سرویس خاموش شده و هیچ درخواستی را جواب نمی‌دهد"
 checks_fa:
-  - "مقدار scale برابر ۰"
+  - "تعداد نمونه‌های در حال اجرا صفر است (scale = ۰)"
 fixes:
   - id: turn_on
     tool: scale_app

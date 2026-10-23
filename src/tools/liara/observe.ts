@@ -6,7 +6,7 @@ import { getEvents } from '../../liara/endpoints/events';
 import { getLogs } from '../../liara/endpoints/logs';
 import { getCpu, getMemory, getMetricsSummary, getNetRx, getNetTx } from '../../liara/endpoints/metrics';
 import type { AppEvent, Release } from '../../liara/types';
-import { appNameSchema, clip, minutesAgo, ok } from '../helpers';
+import { appNameSchema, clip, faNum, minutesAgo, ok } from '../helpers';
 import { defineTool, type ToolContext } from '../registry';
 import { planInfo } from './apps';
 
@@ -173,9 +173,9 @@ export async function collectMetrics(ctx: ToolContext, appName: string, sinceMin
 
 export function metricsLineFa(d: MetricsDigest): string {
   const parts: string[] = [];
-  if (d.memory) parts.push(`رم: حداکثر ${d.memory.maxMB}MB${d.memory.pctOfLimit !== null ? ` (${d.memory.pctOfLimit}٪ سقف پلن)` : ''}، روند ${trendFa(d.memory.trend)}`);
-  if (d.cpu) parts.push(`پردازنده: حداکثر ${d.cpu.max}${d.cpu.unit === 'percent_of_plan' ? '٪' : ' هسته'}`);
-  return parts.length ? parts.join('؛ ') : 'داده‌ی متریکی در این بازه موجود نیست.';
+  if (d.memory) parts.push(`رم: حداکثر ${faNum(d.memory.maxMB)} مگابایت${d.memory.pctOfLimit !== null ? ` (${faNum(d.memory.pctOfLimit)}٪ سقف پلن)` : ''}، روند ${trendFa(d.memory.trend)}`);
+  if (d.cpu) parts.push(`پردازنده: حداکثر ${faNum(d.cpu.max)}${d.cpu.unit === 'percent_of_plan' ? '٪' : ' هسته'}`);
+  return parts.length ? parts.join('؛ ') : 'در این بازه داده‌ای از مصرف منابع موجود نیست.';
 }
 
 export function trendFa(t: string): string {

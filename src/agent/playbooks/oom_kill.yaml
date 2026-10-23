@@ -1,5 +1,5 @@
 id: oom_kill
-title_fa: "پر شدن حافظه (RAM)"
+title_fa: "کمبود رم (پر شدن حافظه)"
 category: resources
 signals:
   - { kind: event_reason, match: "OOMKill", weight: 0.6 }
@@ -8,7 +8,7 @@ signals:
   - { kind: log_regex, match: "JavaScript heap out of memory|Reached heap limit|MemoryError|Killed process|out of memory|Cannot allocate memory", weight: 0.4 }
   - { kind: health, status_in: [502, 503, 504, 0], weight: 0.1 }
 causes_fa:
-  - "برنامه بیشتر از حافظه‌ی پلن مصرف می‌کند (نشت حافظه یا ترافیک بالا)"
+  - "برنامه بیشتر از رم پلن مصرف می‌کند (نشت حافظه یا ترافیک بالا)"
   - "پلن انتخاب‌شده برای این برنامه کوچک است"
 checks_fa:
   - "رویداد OOMKilled در ساعت‌های اخیر"
@@ -24,14 +24,14 @@ fixes:
   - id: restart
     tool: restart_app
     args_template: { appName: "{{app.name}}" }
-    title_fa: "ری‌استارت برنامه"
-    why_fa: "حافظه آزاد می‌شود؛ ولی راه‌حل موقت است"
+    title_fa: "ری‌استارت سرویس"
+    why_fa: "رم آزاد می‌شود؛ ولی راه‌حل موقت است"
     priority: 2
   - id: upgrade_plan
     tool: resize_app
     args_template: { appName: "{{app.name}}", planID: "{{plan.nextUp}}" }
     title_fa: "ارتقای پلن به {{plan.nextUpLabel}}"
-    why_fa: "اگر مصرف واقعی برنامه بالاست، حافظه‌ی بیشتری لازم دارد"
+    why_fa: "اگر مصرف واقعی برنامه بالاست، رم بیشتری لازم دارد"
     priority: 3
 manual_steps_fa:
   - "اگر بعد از ری‌استارت دوباره تکرار شد، بخش‌هایی از کد را که داده را در حافظه نگه می‌دارند (کش، آرایه‌های بزرگ) بررسی کنید."

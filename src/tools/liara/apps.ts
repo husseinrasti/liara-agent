@@ -4,7 +4,7 @@ import { getPlans } from '../../liara/endpoints/account';
 import { LiaraApiError } from '../../liara/errors';
 import { cheapestBundle, monthlyTotalIRT, type Plan } from '../../liara/plans';
 import type { ProjectDetails } from '../../liara/types';
-import { appNameSchema, appUrlFor, formatIRT, maskEnvValue, ok } from '../helpers';
+import { appNameSchema, appUrlFor, faNum, formatIRT, maskEnvValue, ok } from '../helpers';
 import { platformSchema } from '../local/platforms';
 import { defineTool, type ToolContext } from '../registry';
 import { appletsState, healthOf, verifyAppHealthy } from './checks';
@@ -26,7 +26,7 @@ export async function planInfo(ctx: ToolContext, planID?: string | null): Promis
 
 function planText(p: Plan | null, id?: string | null): string {
   if (!p) return id ? `${id}` : 'نامشخص';
-  const ram = p.ramMB >= 1024 ? `${+(p.ramMB / 1024).toFixed(1)} گیگ` : `${p.ramMB} مگ`;
+  const ram = p.ramMB >= 1024 ? `${faNum(p.ramMB / 1024)} گیگابایت` : `${faNum(p.ramMB, { grouping: false })} مگابایت`;
   return `${p.id} (${ram} رم، ${p.cpu} هسته)`;
 }
 
@@ -70,7 +70,7 @@ export const listAppsTool = defineTool({
       isDeployed: p.isDeployed ?? null,
       createdAt: p.created_at ?? null,
     }));
-    return ok(data, data.length ? `${data.length} سرویس در حساب لیارا پیدا شد.` : 'هنوز هیچ سرویسی در حساب لیارا ندارید.');
+    return ok(data, data.length ? `${faNum(data.length)} سرویس در حساب لیارا پیدا شد.` : 'هنوز هیچ سرویسی در حساب لیارا ندارید.');
   },
 });
 
