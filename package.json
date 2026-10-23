@@ -17,7 +17,7 @@
     "probe": "tsx scripts/probe-liara.ts",
     "mcp": "tsx src/mcp/server.ts",
     "accept:prd01": "AUTO_APPROVE=true tsx scripts/acceptance/prd01.ts",
-    "accept:prd02": "tsx scripts/acceptance/prd02.ts",
+    "accept:prd02": "AUTO_APPROVE=true tsx scripts/acceptance/prd02.ts",
     "accept:prd03": "tsx scripts/acceptance/prd03.ts"
   },
   "dependencies": {
