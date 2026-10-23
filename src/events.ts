@@ -3,6 +3,7 @@
  * See docs/00-overview-architecture.md §6. Every event carries {id, ts, sessionId, type}.
  */
 import { z } from 'zod';
+import { PlanRecommendationSchema } from './agent/deploy/plan-schema';
 import { DiagnosisSchema } from './agent/diagnosis-schema';
 
 export const RiskSchema = z.union([z.literal(0), z.literal(1), z.literal(2)]);
@@ -34,7 +35,7 @@ const payloads = {
   }),
   approval_resolved: z.object({ approvalId: z.string(), approved: z.boolean(), by: z.string() }),
   diagnosis: z.object({ appName: z.string(), source: z.enum(['llm', 'rules']), diagnosis: DiagnosisSchema }),
-  plan_recommendation: z.object({ recommendation: z.looseObject({}) }),
+  plan_recommendation: z.object({ recommendation: PlanRecommendationSchema }),
   deploy_progress: z.object({
     stage: z.enum(DEPLOY_STAGES),
     status: z.enum(['pending', 'running', 'done', 'failed']),

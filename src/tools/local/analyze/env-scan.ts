@@ -85,6 +85,15 @@ export function detectDatabase(snap: ProjectSnapshot): { kind: DatabaseKind | nu
   return hit ? { kind: hit[0], evidence: hit[2] } : { kind: null };
 }
 
+const HEAVY_DEPS = ['puppeteer', 'playwright', 'sharp', 'canvas', '@tensorflow/tfjs-node', 'tensorflow', 'torch', 'onnxruntime-node', 'opencv-python', 'fluent-ffmpeg'];
+
+/** Memory/CPU-hungry dependencies that justify a bigger plan. */
+export function detectNotableDeps(snap: ProjectSnapshot): string[] {
+  const deps = allDeps(readJson<PackageJson>(snap, 'package.json'));
+  const py = `${snap.read('requirements.txt') ?? ''}\n${snap.read('pyproject.toml') ?? ''}`.toLowerCase();
+  return HEAVY_DEPS.filter((d) => deps[d] || new RegExp(`(^|[\\s"'])${d.replace(/[/.]/g, '\\$&')}([\\s=<>~"']|$)`, 'm').test(py));
+}
+
 export function detectDiskNeed(snap: ProjectSnapshot): { needsDisk: boolean; evidence?: string } {
   const deps = allDeps(readJson<PackageJson>(snap, 'package.json'));
   if (deps['better-sqlite3'] || deps.sqlite3 || deps.sqlite) return { needsDisk: true, evidence: 'uses an SQLite file database' };

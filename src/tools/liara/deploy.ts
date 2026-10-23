@@ -25,7 +25,7 @@ const RELEASE_STATE_FA: Record<string, string> = {
 };
 export const releaseStateFa = (s: string) => RELEASE_STATE_FA[s.toUpperCase()] ?? s;
 
-function progress(ctx: ToolContext, stage: DeployStage, status: 'pending' | 'running' | 'done' | 'failed', detail?: string) {
+export function progress(ctx: ToolContext, stage: DeployStage, status: 'pending' | 'running' | 'done' | 'failed', detail?: string) {
   ctx.emit?.({ type: 'deploy_progress', stage, status, detail });
 }
 
@@ -70,7 +70,7 @@ export const uploadSourceTool = defineTool({
   verifyDelayMs: 0,
 });
 
-async function waitAndReport(ctx: ToolContext, appName: string, releaseID: string): Promise<ToolResult<{ releaseID: string; state: string; tag: string | null }>> {
+export async function waitAndReport(ctx: ToolContext, appName: string, releaseID: string): Promise<ToolResult<{ releaseID: string; state: string; tag: string | null }>> {
   progress(ctx, 'build', 'running');
   try {
     const rel = await waitForRelease(ctx.liara, appName, releaseID, {
@@ -93,7 +93,7 @@ async function waitAndReport(ctx: ToolContext, appName: string, releaseID: strin
   }
 }
 
-async function verifyRelease(ctx: ToolContext, appName: string, before: unknown, releaseID?: string): Promise<VerifyOutcome> {
+export async function verifyRelease(ctx: ToolContext, appName: string, before: unknown, releaseID?: string): Promise<VerifyOutcome> {
   progress(ctx, 'health', 'running');
   const page = await getReleases(ctx.liara, appName, 1, 10);
   const rel = releaseID ? page.releases.find((r) => r._id === releaseID) : page.releases[0];

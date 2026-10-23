@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { limitation, ok } from '../helpers';
 import { defineTool } from '../registry';
 import { detectCommands, detectPlatform, detectPort, detectVersions, readJson, type DetectedPlatform, type ProjectSnapshot } from './analyze/detect';
-import { detectDatabase, detectDiskNeed, scanEnvKeys, type DatabaseKind, type EnvKey } from './analyze/env-scan';
+import { detectDatabase, detectDiskNeed, detectNotableDeps, scanEnvKeys, type DatabaseKind, type EnvKey } from './analyze/env-scan';
 import { walkProject } from './files';
 import { isStaticPlatform } from './platforms';
 import { ProjectSourceError, resolveProjectPath } from './project-source';
@@ -24,6 +24,8 @@ export interface ProjectAnalysis {
   envKeys: EnvKey[];
   needsDatabase: DatabaseKind | null;
   needsDisk: boolean;
+  /** Memory/CPU-hungry dependencies (puppeteer, sharp, tensorflow…). */
+  notableDeps: string[];
   existingLiaraJson?: Record<string, unknown>;
   sizeMB: number;
   fileCount: number;
@@ -100,6 +102,7 @@ export function analyzeDir(dir: string): ProjectAnalysis {
     envKeys: scanEnvKeys(snap),
     needsDatabase: db.kind,
     needsDisk: disk.needsDisk,
+    notableDeps: detectNotableDeps(snap),
     existingLiaraJson: liaraJson,
     sizeMB: Math.round((walk.totalBytes / 1048576) * 100) / 100,
     fileCount: walk.files.length,
