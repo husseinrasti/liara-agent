@@ -83,16 +83,18 @@ export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidate
       explanation_fa: plainFa(c.explanation_fa),
     }))
     .filter((c) => c.evidence.length > 0);
+
+  const top = candidates[0];
+  if (top && top.score >= 0.8 && top.playbookId !== 'healthy' && !causes.some((c) => c.playbookId === top.playbookId)) {
+    logger.info({ playbookId: top.playbookId, score: top.score }, 'diagnosis: added strong rule candidate missing from LLM output');
+    causes.push(causeFromCandidate(top));
+    manual.push(...top.manualStepsFa);
+  }
   // A real problem with evidence makes a "healthy" cause contradictory.
   const problem = causes.some((c) => c.playbookId !== 'healthy' && c.confidence >= 0.6);
   const ranked = rankCauses(problem ? causes.filter((c) => c.playbookId !== 'healthy') : causes).slice(0, 4);
-
-  const top = candidates[0];
-  if (top && top.score >= 0.8 && top.playbookId !== 'healthy' && !ranked.some((c) => c.playbookId === top.playbookId) && ranked.length < 4) {
-    logger.info({ playbookId: top.playbookId, score: top.score }, 'diagnosis: added strong rule candidate missing from LLM output');
-    ranked.push(causeFromCandidate(top));
-  }
   if (!ranked.length) throw new Error('LLM diagnosis had no causes with evidence');
+  const overridden = problem && llm.severity === 'healthy';
 
   const toAction = (a: LlmDiagnosis['recommendedAction']) => {
     if (!a) return null;
@@ -105,8 +107,8 @@ export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidate
   const limitations = llm.limitationsFa.length ? llm.limitationsFa.map(plainFa) : [NO_ACCESS_LOGS_FA];
 
   return DiagnosisSchema.parse({
-    summaryFa: plainFa(llm.summaryFa),
-    severity: problem && llm.severity === 'healthy' ? 'warning' : llm.severity,
+    summaryFa: overridden ? `${ranked[0]!.title_fa}؛ ${plainFa(llm.summaryFa)}` : plainFa(llm.summaryFa),
+    severity: overridden ? 'warning' : llm.severity,
     causes: ranked,
     recommendedAction,
     alternatives,

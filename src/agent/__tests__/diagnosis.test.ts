@@ -67,6 +67,16 @@ describe('postProcess', () => {
     expect(ids(rankCauses([{ playbookId: 'recent_deploy_regression', confidence: 0.9 }, { playbookId: 'crash_loop', confidence: 0.6 }]))).toEqual(['recent_deploy_regression', 'crash_loop']);
   });
 
+  it('a strong rule finding the LLM called healthy leads the diagnosis', () => {
+    const top = evaluation.candidates[0]!;
+    const healthyOnly = { ...llmOom, severity: 'healthy' as const, summaryFa: 'سرویس سالم است.', causes: [{ ...llmOom.causes[0]!, playbookId: 'healthy', confidence: 0.98 }] };
+    const d = postProcess(healthyOnly, packet, evaluation.candidates);
+    expect(d.causes[0]!.playbookId).toBe(top.playbookId);
+    expect(d.severity).toBe('warning');
+    expect(d.summaryFa.startsWith(top.title_fa)).toBe(true);
+    for (const step of top.manualStepsFa) expect(d.manualStepsFa).toContain(step);
+  });
+
   it('drops a contradictory "healthy" cause when a real problem has evidence', () => {
     const cause = (playbookId: string, confidence: number) => ({ ...llmOom.causes[0]!, playbookId, confidence });
     const d = postProcess({ ...llmOom, severity: 'healthy', causes: [cause('healthy', 0.98), cause('build_failed', 1)] }, packet, evaluation.candidates);

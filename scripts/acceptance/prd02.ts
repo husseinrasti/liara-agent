@@ -133,6 +133,9 @@ async function main() {
   });
 
   await t.check('6. broken build → build_failed quoting the failing line', async () => {
+    // From a healthy baseline: step 5 may have left the missing-env release crash-looping.
+    const healthy = await deployFixture(rt, app, 'healthy');
+    assert(healthy.ok, `healthy deploy: ${healthy.message}`);
     const res = await deployFixture(rt, app, 'broken-build');
     assert(!res.ok, 'broken build unexpectedly succeeded');
     const { session, events } = sessionWithEvents(rt, app);
