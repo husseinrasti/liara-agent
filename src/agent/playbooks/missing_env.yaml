@@ -1,0 +1,25 @@
+id: missing_env
+title_fa: "متغیر محیطی لازم تنظیم نشده"
+category: config
+signals:
+  - kind: log_regex
+    match: "is not set|is not defined|is undefined|Missing (required )?env|Environment variable .* not (set|defined)|KeyError: '[A-Z_]+'|must be (set|provided)"
+    weight: 0.6
+  - kind: expr
+    when: "derived.missingEnvKeys.length > 0"
+    detail: "متغیرهای جاافتاده: {{derived.missingEnvKeys}}"
+    source: logs
+    weight: 0.3
+  - { kind: log_regex, match: "ECONNREFUSED .*(localhost|127\\.0\\.0\\.1)", weight: 0.3 }
+  - { kind: health, status_in: [500, 502, 503], weight: 0.1 }
+causes_fa:
+  - "متغیر محیطی لازم ({{derived.missingEnvKeys}}) روی سرویس تنظیم نشده است"
+checks_fa:
+  - "پیام «… is not set» یا KeyError در لاگ"
+fixes: []
+manual_steps_fa:
+  - "مقدار {{derived.missingEnvKeys}} را بفرستید تا روی سرویس تنظیمش کنم؛ مقدار محرمانه را حدس نمی‌زنم."
+verify:
+  - { kind: no_log, match: "is not set|is not defined|Missing .*env", withinMinutes: 5 }
+  - { kind: health, status: 200 }
+advice_fa: "متغیرهای محیطی با update_envs تنظیم می‌شوند و سرویس برای اعمالشان یک بار ری‌استارت می‌شود."

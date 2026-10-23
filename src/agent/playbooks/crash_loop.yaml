@@ -1,0 +1,40 @@
+id: crash_loop
+title_fa: "کرش پشت‌سرهم برنامه"
+category: crash
+threshold: 0.45
+signals:
+  - { kind: applet_reason, match: "CrashLoopBackOff|BackOff|Error", weight: 0.5 }
+  - { kind: event_reason, match: "BackOff|CrashLoop", weight: 0.4 }
+  - { kind: log_regex, match: "Unhandled|uncaughtException|TypeError|ReferenceError|SyntaxError|Traceback|panic:|Exception", weight: 0.3 }
+  - kind: expr
+    when: "logs.stackTraces.length > 0"
+    detail: "{{logs.stackTraces.length}} ردپای خطا (stack trace) در لاگ"
+    source: logs
+    weight: 0.2
+  - { kind: health, status_in: [502, 503, 0], weight: 0.1 }
+causes_fa:
+  - "برنامه هنگام شروع یا کمی بعد از آن با یک خطای کد از کار می‌افتد"
+  - "یک وابستگی یا فایل لازم در محیط اجرا وجود ندارد"
+checks_fa:
+  - "وضعیت CrashLoopBackOff در نمونه‌های در حال اجرا"
+  - "ردپای خطا (stack trace) در لاگ‌ها"
+fixes:
+  - id: rollback_if_recent_deploy
+    when: "app.lastDeployAgeMinutes < 180 && release.previousReady != null"
+    tool: rollback_release
+    args_template: { appName: "{{app.name}}" }
+    title_fa: "برگشت به نسخه‌ی قبلی"
+    why_fa: "کرش بعد از آخرین انتشار شروع شده و نسخه‌ی قبلی سالم بود"
+    priority: 1
+  - id: restart
+    tool: restart_app
+    args_template: { appName: "{{app.name}}" }
+    title_fa: "ری‌استارت برنامه"
+    why_fa: "فقط اگر خطا گذرا باشد کمک می‌کند؛ معمولاً باید کد درست شود"
+    priority: 3
+manual_steps_fa:
+  - "خطایی را که در ردپای خطا آمده در کد برطرف کنید و دوباره منتشر کنید."
+verify:
+  - { kind: no_event, match: "BackOff|CrashLoop", withinMinutes: 5 }
+  - { kind: health, status: 200 }
+advice_fa: "ردپای خطا نشان می‌دهد کدام خط کد باعث کرش می‌شود؛ اصلاح کد کاری است که فقط شما می‌توانید انجام دهید."

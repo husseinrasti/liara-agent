@@ -24,7 +24,7 @@ export interface EvidencePacket {
   } | null;
   health: { status: number; ok: boolean; latencyMs: number | null; error?: string; sampledAt: string } | null;
   applets: { name: string; state: string | null; reason: string | null }[];
-  releases: { id: string; state: string; tag: string | null; createdAt: string | null; failReason?: string }[];
+  releases: { id: string; state: string; tag: string | null; createdAt: string | null; port?: number | null; failReason?: string }[];
   events: {
     windowMinutes: number;
     byReason: Record<string, number>;
@@ -40,7 +40,7 @@ export interface EvidencePacket {
     buildLog?: string[];
   };
   metrics: (MetricsDigest & { unavailable?: string[] }) | null;
-  domains: { name: string; status: string | null; certificatesStatus: string | null }[];
+  domains: { id?: string; name: string; status: string | null; certificatesStatus: string | null }[];
   account: { balanceIRT?: number; lowBalance?: boolean } | null;
   signals: Signal[];
   limitations: string[];

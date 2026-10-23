@@ -7,6 +7,7 @@ import { collectEvidenceTool } from './composite/collect-evidence';
 import { accountTools } from './liara/account';
 import { appTools } from './liara/apps';
 import { deployTools } from './liara/deploy';
+import { diskTools } from './liara/disks';
 import { domainTools } from './liara/domains';
 import { envTools } from './liara/envs';
 import { observeTools } from './liara/observe';
@@ -24,6 +25,7 @@ export const ALL_TOOLS: ToolDef[] = [
   ...domainTools,
   ...deployTools,
   ...envTools,
+  ...diskTools,
   ...shellTools,
   httpHealthCheckTool,
   searchDocsTool,

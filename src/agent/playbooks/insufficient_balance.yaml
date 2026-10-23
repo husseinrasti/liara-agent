@@ -1,0 +1,23 @@
+id: insufficient_balance
+title_fa: "کمبود موجودی حساب لیارا"
+category: account
+signals:
+  - kind: expr
+    when: "account.lowBalance == true"
+    detail: "موجودی حساب ({{account.balanceIRT}} تومان) کمتر از هزینه‌ی ۲۴ ساعت این سرویس است"
+    source: account
+    weight: 0.6
+  - kind: expr
+    when: "derived.appFrozen == true"
+    detail: "وضعیت سرویس: {{app.status}}"
+    source: account
+    weight: 0.6
+causes_fa:
+  - "موجودی حساب لیارا کافی نیست و سرویس ممکن است متوقف شود"
+checks_fa:
+  - "موجودی حساب و وضعیت مسدود بودن سرویس"
+fixes: []
+manual_steps_fa:
+  - "از پنل لیارا (console.liara.ir) حساب را شارژ کنید؛ این تنها کاری است که فقط خودتان می‌توانید انجام دهید. بعد بگویید تا ادامه بدهم."
+verify:
+  - { kind: health, status: 200 }

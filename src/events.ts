@@ -3,6 +3,7 @@
  * See docs/00-overview-architecture.md §6. Every event carries {id, ts, sessionId, type}.
  */
 import { z } from 'zod';
+import { DiagnosisSchema } from './agent/diagnosis-schema';
 
 export const RiskSchema = z.union([z.literal(0), z.literal(1), z.literal(2)]);
 
@@ -32,8 +33,7 @@ const payloads = {
     requiresTypedName: z.string().optional(),
   }),
   approval_resolved: z.object({ approvalId: z.string(), approved: z.boolean(), by: z.string() }),
-  // Shapes are owned by PRD-02 (DiagnosisSchema / PlanRecommendation); kept open here.
-  diagnosis: z.object({ diagnosis: z.looseObject({}) }),
+  diagnosis: z.object({ appName: z.string(), source: z.enum(['llm', 'rules']), diagnosis: DiagnosisSchema }),
   plan_recommendation: z.object({ recommendation: z.looseObject({}) }),
   deploy_progress: z.object({
     stage: z.enum(DEPLOY_STAGES),

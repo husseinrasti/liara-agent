@@ -53,7 +53,18 @@ export function toMB(v: number): number {
 
 export interface MetricsDigest {
   cpu: { avg: number; max: number; last: number; trend: Trend; unit: 'percent_of_plan' | 'cores' } | null;
-  memory: { avgMB: number; maxMB: number; lastMB: number; limitMB: number | null; pctOfLimit: number | null; trend: Trend; nearLimit: boolean } | null;
+  memory: {
+    avgMB: number;
+    maxMB: number;
+    lastMB: number;
+    limitMB: number | null;
+    /** max over the window ÷ plan limit */
+    pctOfLimit: number | null;
+    /** latest value ÷ plan limit (used to verify a fix) */
+    lastPctOfLimit: number | null;
+    trend: Trend;
+    nearLimit: boolean;
+  } | null;
   network: { rxKBps: number | null; txKBps: number | null };
   disks: { name: string; pctUsed: number | null }[];
   points: number;
@@ -99,6 +110,7 @@ export function summarizeMetrics(input: SummarizeInput): MetricsDigest {
           lastMB: round(memStats.last),
           limitMB,
           pctOfLimit: pct,
+          lastPctOfLimit: lastPct === null ? null : round(lastPct),
           trend: memStats.trend,
           nearLimit: (pct ?? 0) >= 90 || (lastPct ?? 0) >= 90,
         }

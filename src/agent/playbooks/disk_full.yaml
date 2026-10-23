@@ -1,0 +1,20 @@
+id: disk_full
+title_fa: "پر شدن دیسک"
+category: resources
+signals:
+  - kind: expr
+    when: "derived.maxDiskPct >= 90"
+    detail: "دیسک {{derived.fullestDisk}} {{derived.maxDiskPct}}٪ پر شده است"
+    source: metrics
+    weight: 0.6
+  - { kind: log_regex, match: "ENOSPC|No space left on device|disk quota exceeded", weight: 0.5 }
+causes_fa:
+  - "فضای دیسک تمام شده و برنامه نمی‌تواند فایل جدید بنویسد"
+checks_fa:
+  - "درصد پر بودن دیسک‌ها"
+  - "خطای ENOSPC در لاگ"
+fixes: []
+manual_steps_fa:
+  - "فایل‌های اضافی (لاگ‌های قدیمی، فایل‌های موقت) را پاک کنید یا بگویید دیسک را بزرگ‌تر کنم (resize_disk، هزینه دارد)."
+verify:
+  - { kind: no_log, match: "ENOSPC|No space left", withinMinutes: 5 }

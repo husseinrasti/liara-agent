@@ -1,0 +1,24 @@
+id: app_stopped
+title_fa: "سرویس خاموش است"
+category: config
+threshold: 0.5
+signals:
+  - kind: expr
+    when: "app.scale == 0"
+    detail: "سرویس خاموش است (scale برابر ۰)"
+    source: release
+    weight: 0.9
+  - { kind: health, status_in: [0, 404, 502, 503], weight: 0.1 }
+causes_fa:
+  - "سرویس خاموش شده و هیچ درخواستی را جواب نمی‌دهد"
+checks_fa:
+  - "مقدار scale برابر ۰"
+fixes:
+  - id: turn_on
+    tool: scale_app
+    args_template: { appName: "{{app.name}}", on: true }
+    title_fa: "روشن کردن سرویس"
+    why_fa: "سرویس خاموش است و تا روشن نشود سایت باز نمی‌شود"
+    priority: 1
+verify:
+  - { kind: health, status: 200 }

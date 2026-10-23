@@ -1,0 +1,25 @@
+id: cpu_saturation_slow
+title_fa: "کندی به‌خاطر تمام شدن ظرفیت پردازنده"
+category: performance
+threshold: 0.4
+signals:
+  - { kind: metric, field: cpu.max, op: ">=", value: 90, weight: 0.4 }
+  - { kind: metric, field: cpu.avg, op: ">=", value: 70, weight: 0.2 }
+  - { kind: health, latency_over_ms: 2000, weight: 0.3 }
+causes_fa:
+  - "پردازنده‌ی پلن فعلی تمام ظرفیتش را مصرف می‌کند و درخواست‌ها در صف می‌مانند"
+checks_fa:
+  - "مصرف پردازنده نزدیک ۱۰۰٪ پلن"
+  - "زمان پاسخ بالا با کد ۲۰۰"
+fixes:
+  - id: upgrade_plan
+    tool: resize_app
+    args_template: { appName: "{{app.name}}", planID: "{{plan.nextUp}}" }
+    title_fa: "ارتقای پلن به {{plan.nextUpLabel}}"
+    why_fa: "پردازنده‌ی پلن فعلی برای این میزان کار کافی نیست"
+    priority: 1
+manual_steps_fa:
+  - "کش کردن نتیجه‌ها و کم کردن کارهای سنگین در هر درخواست، کندی را بدون هزینه‌ی بیشتر کم می‌کند."
+verify:
+  - { kind: health, status: 200 }
+  - { kind: metric, field: cpu.last, op: "<", value: 85 }

@@ -1,0 +1,28 @@
+id: port_mismatch
+title_fa: "پورت برنامه با پورت انتشار یکی نیست"
+category: config
+signals:
+  - { kind: release_state, match: "UNHEALTHY", weight: 0.4 }
+  - kind: expr
+    when: "derived.portMismatch == true"
+    detail: "برنامه روی پورت {{derived.listenPort}} گوش می‌دهد ولی انتشار روی پورت {{release.latestPort}} تنظیم شده"
+    source: logs
+    weight: 0.5
+  - { kind: health, status_in: [502, 503, 504], weight: 0.2 }
+causes_fa:
+  - "برنامه روی پورتی غیر از پورتی که به لیارا اعلام شده گوش می‌دهد، برای همین درخواست‌ها به آن نمی‌رسند"
+checks_fa:
+  - "خط «listening on port …» در لاگ"
+  - "پورت انتشار در تنظیمات"
+fixes:
+  - id: redeploy_with_port
+    tool: deploy_release
+    args_template: { appName: "{{app.name}}", sourceID: "{{source.latest}}", port: "{{derived.listenPort}}", platform: "{{app.platform}}", waitForReady: true }
+    title_fa: "انتشار دوباره با پورت {{derived.listenPort}}"
+    why_fa: "پورت انتشار باید با پورتی که برنامه روی آن گوش می‌دهد یکی باشد"
+    priority: 1
+manual_steps_fa:
+  - "در liara.json مقدار port را برابر پورتی بگذارید که برنامه روی آن گوش می‌دهد ({{derived.listenPort}})."
+verify:
+  - { kind: release_ready }
+  - { kind: health, status: 200 }

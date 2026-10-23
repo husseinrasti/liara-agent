@@ -1,0 +1,17 @@
+id: healthy
+title_fa: "مشکلی دیده نشد"
+category: performance
+signals: []
+causes_fa:
+  - "سرویس سالم به نظر می‌رسد؛ نشانه‌ای از خطا یا کمبود منابع دیده نشد"
+checks_fa:
+  - "پاسخ ۲۰۰ سایت، نبود رویداد خرابی و مصرف عادی منابع"
+fixes:
+  - id: watch
+    tool: set_app_watch
+    args_template: { appName: "{{app.name}}", on: true }
+    title_fa: "روشن کردن پایش خودکار"
+    why_fa: "اگر بعداً مشکلی پیش بیاید خودم خبرتان می‌کنم"
+    priority: 1
+manual_steps_fa: []
+verify: []

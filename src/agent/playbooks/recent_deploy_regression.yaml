@@ -1,0 +1,31 @@
+id: recent_deploy_regression
+title_fa: "خرابی بعد از آخرین انتشار"
+category: crash
+threshold: 0.45
+signals:
+  - kind: expr
+    when: "app.lastDeployAgeMinutes < 120 && (logs.errorLines > 3 || health.ok == false)"
+    detail: "مشکل در {{app.lastDeployAgeMinutes}} دقیقه‌ی بعد از آخرین انتشار دیده شده است"
+    source: release
+    weight: 0.5
+  - kind: expr
+    when: "derived.errorsAfterDeploy == true"
+    detail: "اولین خطاها بعد از انتشار نسخه‌ی {{release.latest.tag}} شروع شده‌اند"
+    source: logs
+    weight: 0.3
+causes_fa:
+  - "تغییری که در آخرین انتشار آمده، برنامه را خراب کرده است"
+checks_fa:
+  - "زمان شروع خطاها نسبت به زمان آخرین انتشار"
+fixes:
+  - id: rollback
+    when: "release.previousReady != null"
+    tool: rollback_release
+    args_template: { appName: "{{app.name}}" }
+    title_fa: "برگشت به نسخه‌ی قبلی"
+    why_fa: "خطاها بعد از آخرین انتشار شروع شده‌اند و نسخه‌ی قبلی سالم بود"
+    priority: 1
+manual_steps_fa:
+  - "تغییرات آخرین انتشار را بررسی کنید و بعد از اصلاح دوباره منتشر کنید."
+verify:
+  - { kind: health, status: 200 }

@@ -1,0 +1,30 @@
+id: domain_not_verified
+title_fa: "دامنه هنوز وصل یا امن (SSL) نشده"
+category: domain
+signals:
+  - kind: expr
+    when: "derived.unverifiedDomains > 0"
+    detail: "دامنه‌ی {{derived.firstUnverifiedDomain}} هنوز تأیید نشده (DNS)"
+    source: domain
+    weight: 0.6
+  - kind: expr
+    when: "derived.sslPendingDomain != null"
+    detail: "گواهی SSL دامنه‌ی {{derived.sslPendingDomain}} هنوز فعال نیست"
+    source: domain
+    weight: 0.4
+causes_fa:
+  - "رکورد DNS دامنه هنوز درست تنظیم نشده یا تغییراتش منتشر نشده است"
+  - "دامنه وصل شده ولی گواهی https هنوز صادر نشده است"
+checks_fa:
+  - "وضعیت دامنه و گواهی SSL"
+fixes:
+  - id: enable_ssl
+    tool: enable_ssl
+    args_template: { appName: "{{app.name}}", domain: "{{derived.sslPendingDomain}}" }
+    title_fa: "فعال‌سازی SSL برای {{derived.sslPendingDomain}}"
+    why_fa: "دامنه وصل شده ولی گواهی https هنوز صادر نشده"
+    priority: 1
+manual_steps_fa:
+  - "در پنل DNS دامنه‌ی {{derived.firstUnverifiedDomain}} رکورد CNAME را مطابق راهنما بسازید (برای دامنه‌های ‎.ir از طریق ایرنیک)؛ انتشار تغییرات تا ۲۴ ساعت طول می‌کشد."
+verify:
+  - { kind: domain_verified }

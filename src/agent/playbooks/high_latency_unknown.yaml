@@ -1,0 +1,26 @@
+id: high_latency_unknown
+title_fa: "کندی بدون فشار روی منابع"
+category: performance
+signals:
+  - { kind: health, latency_over_ms: 2000, weight: 0.5 }
+  - kind: expr
+    when: "health.ok == true && (metrics.cpu == null || metrics.cpu.max < 70) && (metrics.memory == null || metrics.memory.pctOfLimit < 80)"
+    detail: "رم و پردازنده تحت فشار نیستند"
+    source: metrics
+    weight: 0.1
+causes_fa:
+  - "پاسخ‌ها کند است ولی رم و پردازنده تحت فشار نیستند؛ احتمالاً یک وابستگی بیرونی (API یا پایگاه داده) کند است"
+  - "ممکن است تغییر آخرین انتشار باعث کندی شده باشد"
+checks_fa:
+  - "زمان پاسخ بیش از ۲ ثانیه"
+fixes:
+  - id: watch
+    tool: set_app_watch
+    args_template: { appName: "{{app.name}}", on: true }
+    title_fa: "روشن کردن پایش خودکار"
+    why_fa: "زمان پاسخ را مرتب می‌سنجم و اگر بدتر شد خبرتان می‌کنم"
+    priority: 1
+manual_steps_fa:
+  - "اگر برنامه به سرویس بیرونی (API یا پایگاه داده) وصل می‌شود، سرعت پاسخ آن را بررسی کنید."
+verify:
+  - { kind: health, status: 200 }

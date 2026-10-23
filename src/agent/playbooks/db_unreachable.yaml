@@ -1,0 +1,19 @@
+id: db_unreachable
+title_fa: "وصل نشدن به پایگاه داده یا سرویس بیرونی"
+category: network
+signals:
+  - kind: log_regex
+    match: "ECONNREFUSED|ETIMEDOUT|Connection refused|could not connect to server|MongoNetworkError|MongoServerSelectionError|Authentication failed|ER_ACCESS_DENIED|SequelizeConnectionError|P1001|getaddrinfo ENOTFOUND|password authentication failed"
+    weight: 0.6
+  - { kind: health, status_in: [500, 502, 503], weight: 0.1 }
+causes_fa:
+  - "برنامه به پایگاه داده یا یک سرویس بیرونی وصل نمی‌شود (آدرس یا رمز اشتباه، یا آن سرویس در دسترس نیست)"
+checks_fa:
+  - "پیام ECONNREFUSED، ETIMEDOUT یا Authentication failed در لاگ"
+fixes: []
+manual_steps_fa:
+  - "متغیر آدرس پایگاه داده (مثل DATABASE_URL) و نام کاربری و رمز آن را بررسی کنید؛ اگر مقدار درست را بفرستید، تنظیمش می‌کنم."
+  - "اگر پایگاه داده روی لیارا است، روشن بودن و در دسترس بودن آن را در پنل لیارا ببینید."
+verify:
+  - { kind: no_log, match: "ECONNREFUSED|ETIMEDOUT|Connection refused|Authentication failed", withinMinutes: 5 }
+  - { kind: health, status: 200 }

@@ -14,7 +14,13 @@ export const SignalRuleSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('metric'), field: z.string(), op: z.enum(OPS), value: z.number(), weight }),
   z.object({ kind: z.literal('health'), status_in: z.array(z.number()).optional(), latency_over_ms: z.number().optional(), weight }),
   z.object({ kind: z.literal('release_state'), match: z.string(), weight }),
-  z.object({ kind: z.literal('expr'), when: z.string(), detail: z.string(), weight }),
+  z.object({
+    kind: z.literal('expr'),
+    when: z.string(),
+    detail: z.string(),
+    weight,
+    source: z.enum(['events', 'logs', 'metrics', 'applets', 'health', 'release', 'account', 'domain']).default('release'),
+  }),
 ]);
 export type SignalRule = z.infer<typeof SignalRuleSchema>;
 
