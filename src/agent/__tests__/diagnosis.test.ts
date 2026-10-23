@@ -53,6 +53,13 @@ describe('postProcess', () => {
     expect(d.limitationsFa[0]).toContain('لاگ دسترسی');
   });
 
+  it('replaces raw English state words in Persian text but keeps exact quotes', () => {
+    const raw = { ...llmOom, summaryFa: 'بعد از rollback به نسخه‌ی READY قبلی، health check سالم بود.' };
+    const d = postProcess(raw, packet, evaluation.candidates);
+    expect(d.summaryFa).toBe('بعد از برگشت به نسخه‌ی قبلی به نسخه‌ی آماده قبلی، بررسی سلامت سالم بود.');
+    expect(d.causes[0]!.evidence[0]!.raw).toBe('Container shop was OOM killed');
+  });
+
   it('adds a strong rule candidate the LLM missed', () => {
     const missed = { ...llmOom, causes: [{ ...llmOom.causes[0]!, playbookId: 'crash_loop', title_fa: 'کرش' }] };
     const d = postProcess(missed, packet, evaluation.candidates);

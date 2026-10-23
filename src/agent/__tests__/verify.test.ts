@@ -6,7 +6,7 @@ import { activeAlerts, raiseAlert } from '../alerts';
 import { getMemoryKey, setMemoryKey } from '../memory';
 import { toolContextFor } from '../runtime';
 import { AgentSession } from '../session';
-import { FOLLOW_UP_MS, runVerifyChecks, verifyAction } from '../verify';
+import { FOLLOW_UP_MS, mergeEvidence, runVerifyChecks, verifyAction } from '../verify';
 import '../tools';
 
 const ns = (iso: string) => `${Date.parse(iso)}000000`;
@@ -89,5 +89,15 @@ describe('runVerifyChecks', () => {
     expect(res.evidence.some((e) => e.startsWith('وضعیت سایت: 502'))).toBe(true);
     expect(res.evidence).toContain('آخرین نسخه: آماده');
     expect(res.evidence.join(' ')).toContain('داده‌ای در دسترس نیست');
+  });
+});
+
+describe('mergeEvidence', () => {
+  it('keeps one line per label, in first position with the latest value', () => {
+    expect(mergeEvidence(['وضعیت سایت: 200 (سالم، ۱۵۸ میلی‌ثانیه)', 'نمونه‌ها: ۱ از ۱'], ['وضعیت سایت: 200 (سالم، ۱۷۶ میلی‌ثانیه)', 'رم: ۲۲٪'])).toEqual([
+      'وضعیت سایت: 200 (سالم، ۱۷۶ میلی‌ثانیه)',
+      'نمونه‌ها: ۱ از ۱',
+      'رم: ۲۲٪',
+    ]);
   });
 });

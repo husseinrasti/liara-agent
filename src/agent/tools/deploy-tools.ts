@@ -10,13 +10,14 @@ import { platformSchema } from '../../tools/local/platforms';
 import { resolveProjectPath } from '../../tools/local/project-source';
 import { defineTool } from '../../tools/registry';
 import { planLabelFa, recommendPlan } from '../deploy/plan';
+import { suggestAppName } from '../deploy/project-files';
 import { deployProject, DeployProjectInputSchema } from '../deploy/wizard';
 
 export const recommendPlanTool = defineTool({
   name: 'recommend_plan',
   title: 'Recommend a plan',
   description:
-    'Recommend a Liara plan for a project (deterministic: platform RAM floor, heavy dependencies, real prices) with monthly cost, reasons, a cheaper/bigger alternative and whether the balance covers it. Give the project path (preferred) or its platform.',
+    'Recommend a Liara plan for a project (deterministic: platform RAM floor, heavy dependencies, real prices) with monthly cost, reasons, a cheaper/bigger alternative and whether the balance covers it. With the project path it also returns suggestedAppName (liara.json app, else a free name from the folder) to use as deploy_project appName. Give the project path (preferred) or its platform.',
   input: z
     .object({
       path: z.string().optional(),
@@ -31,16 +32,22 @@ export const recommendPlanTool = defineTool({
   describeFa: () => 'پیشنهاد پلن مناسب',
   run: async (input, ctx) => {
     let facts = { platform: input.platform ?? 'node', sizeMB: input.sizeMB, needsDatabase: input.needsDatabase ?? null, needsDisk: false, notableDeps: input.notableDeps ?? [] };
+    let suggestedAppName: string | undefined;
     if (input.path) {
-      const a = analyzeDir((await resolveProjectPath(input.path, { workdir: ctx.workdir, dataDir: ctx.dataDir })).dir);
+      const src = await resolveProjectPath(input.path, { workdir: ctx.workdir, dataDir: ctx.dataDir });
+      const a = analyzeDir(src.dir);
       facts = { platform: input.platform ?? (a.platform === 'unknown' ? 'node' : a.platform), sizeMB: a.sizeMB, needsDatabase: a.needsDatabase, needsDisk: a.needsDisk, notableDeps: a.notableDeps };
+      const configured = a.existingLiaraJson?.app;
+      const taken = (await listApps(ctx.liara).catch(() => [])).map((x) => x.project_id);
+      suggestedAppName = typeof configured === 'string' && configured ? configured : suggestAppName(src.gitUrl ?? src.dir, taken);
     }
     const [plans, balance] = await Promise.all([getPlans(ctx.liara), getBalance(ctx.liara).catch(() => null)]);
     const rec = recommendPlan(facts, plans, balance);
     if (!rec) return limitation('فهرست پلن‌های لیارا الان در دسترس نیست؛ کمی بعد دوباره امتحان می‌کنم.', 'plan catalogue empty');
     ctx.emit?.({ type: 'plan_recommendation', recommendation: rec });
     const balanceFa = rec.balance ? (rec.balance.sufficient ? `؛ موجودی برای حدود ${faNum(rec.balance.enoughForDays ?? 0)} روز کافی است` : '؛ موجودی حساب برای این پلن کافی نیست') : '';
-    return ok(rec, `پیشنهاد: ${rec.label}، ماهانه حدود ${formatIRT(rec.totalMonthlyIRT)}${balanceFa}.`);
+    const nameFa = suggestedAppName ? ` نام سرویس: ${suggestedAppName}.` : '';
+    return ok({ ...rec, ...(suggestedAppName ? { suggestedAppName } : {}) }, `پیشنهاد: ${rec.label}، ماهانه حدود ${formatIRT(rec.totalMonthlyIRT)}${balanceFa}.${nameFa}`);
   },
 });
 

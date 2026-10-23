@@ -46,14 +46,22 @@ function parseArgs(json: string): unknown {
   }
 }
 
+/** Raw English state words the model sometimes leaves in Persian text (exact log quotes in `raw` are untouched). */
+const RAW_WORDS_FA: [RegExp, string][] = [
+  [/\bREADY\b/g, 'آماده'],
+  [/\brollback\b/gi, 'برگشت به نسخه‌ی قبلی'],
+  [/\bhealth[ -]?check\b/gi, 'بررسی سلامت'],
+];
+export const plainFa = (text: string) => RAW_WORDS_FA.reduce((t, [re, fa]) => t.replace(re, fa), text);
+
 /** Clamps, checks quotes against the packet, validates actions, merges a strong rule candidate the LLM missed. */
 export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidates: Candidate[], logger: Logger = silentLogger): Diagnosis {
   const haystack = norm(JSON.stringify(packet));
   const appName = packet.app?.name;
-  const manual = [...llm.manualStepsFa];
+  const manual = llm.manualStepsFa.map(plainFa);
   const causes = llm.causes
     .map((c) => ({
-      title_fa: c.title_fa,
+      title_fa: plainFa(c.title_fa),
       ...(c.playbookId ? { playbookId: c.playbookId } : {}),
       confidence: Math.max(0, Math.min(1, Number.isFinite(c.confidence) ? c.confidence : 0)),
       evidence: c.evidence
@@ -61,9 +69,9 @@ export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidate
         .map((e) => {
           const quote = e.raw ? norm(e.raw) : '';
           const verified = quote && haystack.includes(norm(JSON.stringify(quote)).slice(1, 61));
-          return { source: e.source, text_fa: e.text_fa, ...(verified ? { raw: e.raw! } : {}) };
+          return { source: e.source, text_fa: plainFa(e.text_fa), ...(verified ? { raw: e.raw! } : {}) };
         }),
-      explanation_fa: c.explanation_fa,
+      explanation_fa: plainFa(c.explanation_fa),
     }))
     .filter((c) => c.evidence.length > 0)
     .slice(0, 4);
@@ -77,23 +85,23 @@ export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidate
 
   const toAction = (a: LlmDiagnosis['recommendedAction']) => {
     if (!a) return null;
-    const action = validateAction(a.tool, parseArgs(a.argsJson), a.title_fa, a.why_fa, appName);
-    if (!action) manual.push(a.title_fa);
+    const action = validateAction(a.tool, parseArgs(a.argsJson), plainFa(a.title_fa), plainFa(a.why_fa), appName);
+    if (!action) manual.push(plainFa(a.title_fa));
     return action;
   };
   const recommendedAction = toAction(llm.recommendedAction);
   const alternatives = llm.alternatives.map(toAction).filter((a): a is DiagnosisAction => Boolean(a)).slice(0, 3);
-  const limitations = llm.limitationsFa.length ? llm.limitationsFa : [NO_ACCESS_LOGS_FA];
+  const limitations = llm.limitationsFa.length ? llm.limitationsFa.map(plainFa) : [NO_ACCESS_LOGS_FA];
 
   return DiagnosisSchema.parse({
-    summaryFa: llm.summaryFa,
+    summaryFa: plainFa(llm.summaryFa),
     severity: llm.severity,
     causes,
     recommendedAction,
     alternatives,
     manualStepsFa: [...new Set(manual)].slice(0, 5),
     limitationsFa: limitations.slice(0, 4),
-    followUpQuestionsFa: llm.followUpQuestionsFa.slice(0, 2),
+    followUpQuestionsFa: llm.followUpQuestionsFa.slice(0, 2).map(plainFa),
   });
 }
 

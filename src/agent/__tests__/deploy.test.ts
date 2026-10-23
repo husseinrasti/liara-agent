@@ -124,7 +124,7 @@ describe('deploy_project wizard', () => {
     expect(calls.some((c) => c.method === 'POST' && c.url.pathname === '/v1/projects')).toBe(false);
   });
 
-  it('recommend_plan emits a Plan Card', async () => {
+  it('recommend_plan emits a Plan Card and suggests a free app name', async () => {
     const { routes } = deployRoutes();
     const { rt } = fakeAgent({ routes });
     const session = AgentSession.create(rt);
@@ -133,5 +133,6 @@ describe('deploy_project wizard', () => {
     const out = await policyExecutor(rt, session, { pendingApprovals: [] })(getTool('recommend_plan')!, { path: tempProject() }, { toolCallId: 'c1' });
     expect(out.ok).toBe(true);
     expect(events.find((e) => e.type === 'plan_recommendation')).toMatchObject({ recommendation: { planID: 'medium-g2', balance: { sufficient: true } } });
+    expect(out.data).toMatchObject({ suggestedAppName: expect.stringMatching(/^my-shop-[a-z0-9-]+$/) });
   });
 });

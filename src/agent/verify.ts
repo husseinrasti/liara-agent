@@ -142,7 +142,7 @@ export async function verifyAction(rt: AgentRuntime, session: AgentSession, v: V
   const pb = playbookFor(rt, appName, v.def.name, v.playbookId);
   const pbOutcome = pb && appName && pb.verify.length ? await runVerifyChecks(ctx, appName, pb.verify, actedAt) : { ok: true, evidence: [] };
   const fixed = own.ok && pbOutcome.ok;
-  const evidence = [...new Set([...own.evidence, ...pbOutcome.evidence])];
+  const evidence = mergeEvidence(own.evidence, pbOutcome.evidence);
   const nextSuggestion = fixed ? undefined : (nextFixTitle(pb, v.def.name) ?? 'دوباره شواهد را جمع کنم و بررسی کنم؟');
   session.emit({ type: 'verify_result', action: v.def.name, fixed, evidence, ...(nextSuggestion ? { nextSuggestion } : {}) });
   if (v.auditId !== null) recordVerify(rt.deps.db, v.auditId, { ok: fixed, evidence });
@@ -151,6 +151,13 @@ export async function verifyAction(rt: AgentRuntime, session: AgentSession, v: V
   const turnedOff = v.def.name === 'scale_app' && (v.input as { on?: boolean })?.on === false;
   if (fixed && appName && RESTART_TYPE.has(v.def.name) && !turnedOff) scheduleFollowUp(rt, session, appName, v.def.name, actedAt);
   return { action: v.def.name, fixed, evidence, ...(nextSuggestion ? { nextSuggestion } : {}) };
+}
+
+/** One line per label («وضعیت سایت: …» from both the tool and the playbook check): first position, latest value. */
+export function mergeEvidence(...lists: string[][]): string[] {
+  const byLabel = new Map<string, string>();
+  for (const line of lists.flat()) byLabel.set(line.split(':')[0]!.trim(), line);
+  return [...byLabel.values()];
 }
 
 /** +3 min: if crash events or a failing health check are back, raise an alert. */
