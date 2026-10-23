@@ -34,7 +34,7 @@ export async function POST(req: Request) {
     invalidateStatus(app.name);
     return Response.json({ ok: true, via: 'release', releaseID });
   }
-  state.setEnvsRaw(app.name, parsed.data.mode === 'none' ? others : [...others, { key: 'CHAOS_MODE', value: parsed.data.mode }]);
+  state.updateEnvs(app.name, parsed.data.mode === 'none' ? others : [...others, { key: 'CHAOS_MODE', value: parsed.data.mode }]);
   invalidateStatus(app.name);
   return Response.json({ ok: true, via: 'env', mode: parsed.data.mode });
 }
