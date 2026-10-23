@@ -81,6 +81,8 @@ export interface ToolDef<I = any, O = any> {
   verifyDelayMs?: number;
   /** risk 2: the input field whose value the user must type to confirm (default `appName`). */
   confirmField?: string;
+  /** Risk 0 but writes local state (files, agent memory): not "read-only" for MCP hosts. */
+  writesLocal?: boolean;
 }
 
 /**
@@ -222,7 +224,7 @@ export function toMcpTools(defs: ToolDef[] = listTools()): McpToolDescriptor[] {
       inputSchema: { ...schema, type: 'object', properties, required },
       annotations: {
         title: def.title,
-        readOnlyHint: def.risk === 0,
+        readOnlyHint: def.risk === 0 && !def.writesLocal,
         destructiveHint: def.risk === 2,
         idempotentHint: def.risk === 0,
         openWorldHint: def.category !== 'local',

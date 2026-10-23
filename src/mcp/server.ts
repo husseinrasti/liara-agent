@@ -10,6 +10,9 @@ import path from 'node:path';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ListToolsRequestSchema, type CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { LanguageModel } from 'ai';
+import '../agent/tools';
+import { createModel, type ModelTier } from '../agent/providers';
 import { ConfigError, ROOT_DIR } from '../config';
 import { finishAudit, recordVerify, startAudit } from '../db/repo';
 import type { AgentEventInput } from '../events';
@@ -30,6 +33,32 @@ const INSTRUCTIONS = [
 
 let runtime: RuntimeDeps | null = null;
 let runtimeError: string | null = null;
+const models = new Map<ModelTier, LanguageModel | null>();
+
+/** LLM for agent-level tools (diagnose_app); absent when no LLM key is configured (rule-based fallback). */
+function llmFor(rt: RuntimeDeps) {
+  return (tier: ModelTier): LanguageModel => {
+    if (!models.has(tier)) {
+      try {
+        models.set(tier, createModel(tier, rt.config));
+      } catch {
+        models.set(tier, null);
+      }
+    }
+    const m = models.get(tier);
+    if (!m) throw new Error('LLM not configured');
+    return m;
+  };
+}
+
+function hasLlm(rt: RuntimeDeps): boolean {
+  try {
+    llmFor(rt)('smart');
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function getRuntime(): RuntimeDeps | null {
   if (runtime || runtimeError) return runtime;
@@ -72,7 +101,7 @@ async function callTool(name: string, rawArgs: Record<string, unknown>, notify: 
   const gate = await checkConfirmation(def, rawArgs, rt);
   if (gate) return gate;
   const { confirm: _c, confirmAppName: _n, ...args } = rawArgs;
-  const ctx = createToolContext(rt, { emit: notify, sessionId: 'mcp' });
+  const ctx = createToolContext(rt, { emit: notify, sessionId: 'mcp', ...(hasLlm(rt) ? { llm: llmFor(rt) } : {}) });
 
   if (def.risk === 0) {
     const result = await runTool(def, args, ctx);

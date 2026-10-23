@@ -11,6 +11,7 @@ export const setAppWatchTool = defineTool({
     "Turn this assistant's background monitoring for an app on or off (health, memory, crash events every minute; proactive alerts). Changes nothing on Liara.",
   input: z.object({ appName: appNameSchema, on: z.boolean() }),
   risk: 0,
+  writesLocal: true,
   category: 'ops',
   describeFa: ({ appName, on }) => (on ? `روشن کردن پایش خودکار ${appName}` : `خاموش کردن پایش خودکار ${appName}`),
   run: async ({ appName, on }, ctx) => {
@@ -25,6 +26,7 @@ export const saveAppNoteTool = defineTool({
   description: 'Store a short fact the user asked you to remember about an app (e.g. "high traffic at night"). It is shown back in future conversations.',
   input: z.object({ appName: appNameSchema, note: z.string().min(2).max(300) }),
   risk: 0,
+  writesLocal: true,
   category: 'ops',
   describeFa: ({ appName }) => `به خاطر سپردن یک نکته درباره‌ی ${appName}`,
   run: async ({ appName, note }, ctx) => {

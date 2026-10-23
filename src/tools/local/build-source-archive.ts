@@ -43,6 +43,7 @@ export const buildSourceArchiveTool = defineTool({
     'Pack a local project folder (or public git URL) into data/sources/<app>/<timestamp>.tar.gz for upload_source. Honours .gitignore/.liaraignore like liara-cli, skips node_modules/.git and never includes .env secret files. Local only; uploads nothing.',
   input: z.object({ path: z.string().min(1), appName: appNameSchema }),
   risk: 0,
+  writesLocal: true,
   category: 'local',
   describeFa: ({ appName }) => `بسته‌بندی کد پروژه برای ${appName}`,
   run: async ({ path: p, appName }, ctx) => {

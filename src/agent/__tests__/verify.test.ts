@@ -84,7 +84,8 @@ describe('runVerifyChecks', () => {
       TEST_NOW,
     );
     expect(res.ok).toBe(false);
-    expect(res.evidence).toEqual(expect.arrayContaining(['وضعیت سایت: 502 (0ms)', 'آخرین نسخه: READY']));
+    expect(res.evidence.some((e) => e.startsWith('وضعیت سایت: 502'))).toBe(true);
+    expect(res.evidence).toContain('آخرین نسخه: READY');
     expect(res.evidence.join(' ')).toContain('داده‌ای در دسترس نیست');
   });
 });

@@ -97,7 +97,7 @@ export function detectPort(snap: ProjectSnapshot, platform: DetectedPlatform): {
       const code = snap.read(f.replace(/^\.\//, ''));
       if (!code) continue;
       const m =
-        /PORT\s*(?:\|\||\?\?)\s*['"]?(\d{2,5})/.exec(code) ?? /\.listen\(\s*(\d{2,5})\b/.exec(code) ?? /port\s*[:=]\s*(\d{2,5})\b/i.exec(code);
+        /PORT\)?\s*(?:\|\||\?\?)\s*['"]?(\d{2,5})/.exec(code) ?? /\.listen\(\s*(\d{2,5})\b/.exec(code) ?? /port\s*[:=]\s*(\d{2,5})\b/i.exec(code);
       if (m) return { port: Number(m[1]), evidence: `${f} listens on ${m[1]} by default` };
     }
   }
