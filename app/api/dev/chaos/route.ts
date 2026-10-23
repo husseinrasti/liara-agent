@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CHAOS_MODES } from '@/src/sim/behavior';
+import { linkSourceRelease, recordSource } from '@/src/db/repo';
 import { getAgentRuntime } from '@/src/runtime';
 import { invalidateStatus } from '@/src/server/status';
 
@@ -25,6 +26,11 @@ export async function POST(req: Request) {
     const sourceID = `sim-chaos-${Date.now()}`;
     state.sources.set(sourceID, { app: app.name, chaos: parsed.data.mode });
     const releaseID = state.createRelease(app.name, { sourceID, port: 3000, type: app.type });
+    // Like `npm run chaos -- --deploy` against Liara: the release's source is recorded for rollback.
+    if (releaseID) {
+      recordSource(server.rt.deps.db, { appName: app.name, sourceID, archivePath: '', createdAt: new Date().toISOString() });
+      linkSourceRelease(server.rt.deps.db, app.name, sourceID, releaseID);
+    }
     invalidateStatus(app.name);
     return Response.json({ ok: true, via: 'release', releaseID });
   }

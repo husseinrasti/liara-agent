@@ -205,6 +205,8 @@ export const rollbackReleaseTool = defineTool({
     let releaseID: string;
     try {
       releaseID = await deployRelease(ctx.liara, appName, { sourceID: sourceID!, port, type: platform, message: `rollback to ${target.tag ?? target._id}` });
+      // so a later rollback can return to this release too
+      linkSourceRelease(ctx.db, appName, sourceID!, releaseID);
     } catch (err) {
       if (!row?.archivePath || !existsSync(row.archivePath)) throw err;
       const newSource = await uploadSource(ctx.liara, appName, readFileSync(row.archivePath), path.basename(row.archivePath));

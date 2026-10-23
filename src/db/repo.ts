@@ -19,14 +19,21 @@ export function recordSource(db: Db, row: Omit<SourceRow, 'releaseID'> & { relea
 
 export function linkSourceRelease(db: Db, appName: string, sourceID: string, releaseID: string): void {
   db.prepare('UPDATE sources SET releaseID = ? WHERE appName = ? AND sourceID = ?').run(releaseID, appName, sourceID);
+  db.prepare('INSERT OR REPLACE INTO release_sources (appName, releaseID, sourceID) VALUES (?, ?, ?)').run(appName, releaseID, sourceID);
 }
 
 export function sourcesFor(db: Db, appName: string): SourceRow[] {
   return db.prepare('SELECT * FROM sources WHERE appName = ? ORDER BY createdAt DESC').all(appName) as SourceRow[];
 }
 
+/** The recorded source behind a release, including releases that re-released an older source (rollbacks). */
 export function sourceForRelease(db: Db, appName: string, releaseID: string): SourceRow | undefined {
-  return db.prepare('SELECT * FROM sources WHERE appName = ? AND releaseID = ?').get(appName, releaseID) as SourceRow | undefined;
+  return db
+    .prepare(
+      `SELECT s.appName, s.sourceID, s.archivePath, r.releaseID, s.createdAt FROM release_sources r
+       JOIN sources s ON s.appName = r.appName AND s.sourceID = r.sourceID WHERE r.appName = ? AND r.releaseID = ?`,
+    )
+    .get(appName, releaseID) as SourceRow | undefined;
 }
 
 /** Releases this assistant rolled back FROM; a later rollback never returns to them. */
