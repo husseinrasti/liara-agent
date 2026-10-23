@@ -78,10 +78,13 @@ async function main() {
   await t.check('3. read tools: logs, events, applets, releases, metrics ok', async () => {
     const logs = await run('get_app_logs', { appName: app, sinceMinutes: 60 }, ctx);
     const events = await run('get_app_events', { appName: app }, ctx);
-    const applets = await run('get_app_applets', { appName: app }, ctx);
+    // applets return 500 on the new infrastructure [probe]; the tool must say so as a limitation
+    const appletsRes = await runTool(getTool('get_app_applets')!, { appName: app }, ctx);
+    assert(appletsRes.ok || appletsRes.limitation === true, `get_app_applets failed: ${appletsRes.ok ? '' : appletsRes.error}`);
+    const applets = appletsRes.ok ? (appletsRes.data as unknown[]).length : 'limitation';
     const releases = await run('get_app_releases', { appName: app }, ctx);
     const metrics = await run('get_app_metrics', { appName: app }, ctx);
-    return `logs ${logs.stats.total}, events ${events.events.length}, applets ${applets.length}, releases ${releases.releases.length}, mem ${metrics.memory?.maxMB ?? '—'}MB`;
+    return `logs ${logs.stats.total}, events ${events.events.length}, applets ${applets}, releases ${releases.releases.length}, mem ${metrics.memory?.maxMB ?? '—'}MB`;
   });
 
   await t.check('4. http_health_check returns a status', async () => {
@@ -132,17 +135,18 @@ async function main() {
     return `${size} bytes, ${p.durationMs}ms, health ${p.health.status}, ${p.logs.totalLines} log lines, ${p.limitations.length} limitations`;
   });
 
-  await t.check('9. update_envs set/unset PROBE_KEY (merge semantics kept)', async () => {
+  await t.check('9. update_envs set/unset PROBE_FLAG (merge semantics kept)', async () => {
+    // a name without key/token/secret: those values are masked in tool output by design
     const before = await run('get_app', { appName: app }, ctx);
-    const keysBefore = (before.envs as { key: string }[]).map((e) => e.key).filter((k) => k !== 'PROBE_KEY');
-    const set = await runApproved('update_envs', { appName: app, set: { PROBE_KEY: '2' } }, ctx);
+    const keysBefore = (before.envs as { key: string }[]).map((e) => e.key).filter((k) => k !== 'PROBE_FLAG');
+    const set = await runApproved('update_envs', { appName: app, set: { PROBE_FLAG: '2' } }, ctx);
     const mid = await run('get_app', { appName: app }, ctx);
-    const probe = (mid.envs as { key: string; value: string }[]).find((e) => e.key === 'PROBE_KEY');
-    assert(probe?.value === '2', `PROBE_KEY after set: ${JSON.stringify(probe)}`);
+    const probe = (mid.envs as { key: string; value: string }[]).find((e) => e.key === 'PROBE_FLAG');
+    assert(probe?.value === '2', `PROBE_FLAG after set: ${JSON.stringify(probe)}`);
     for (const k of keysBefore) assert(mid.envs.some((e: { key: string }) => e.key === k), `lost env ${k}`);
-    const unset = await runApproved('update_envs', { appName: app, unset: ['PROBE_KEY'] }, ctx);
+    const unset = await runApproved('update_envs', { appName: app, unset: ['PROBE_FLAG'] }, ctx);
     const after = await run('get_app', { appName: app }, ctx);
-    assert(!after.envs.some((e: { key: string }) => e.key === 'PROBE_KEY'), 'PROBE_KEY still present');
+    assert(!after.envs.some((e: { key: string }) => e.key === 'PROBE_FLAG'), 'PROBE_FLAG still present');
     return `set verify ${set.verify.ok}, unset verify ${unset.verify.ok}; kept ${keysBefore.length} other keys`;
   });
 

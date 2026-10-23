@@ -7,13 +7,13 @@ import { clusterLogs, extractStackTraces, isErrorLine } from '../../agent/eviden
 import { trimPacket, type EvidencePacket } from '../../agent/evidence/packet';
 import { getApp, getApplets, getReleases } from '../../liara/endpoints/apps';
 import { getBalance } from '../../liara/endpoints/account';
-import { getBuildLogs, getReleaseStatus, isCodeRelease, RELEASE_FAILED } from '../../liara/endpoints/deploy';
+import { getBuildLogs, getReleaseStatus, isCodeRelease, liveReleaseIds, RELEASE_FAILED, runningRelease } from '../../liara/endpoints/deploy';
 import { listDomains } from '../../liara/endpoints/domains';
 import { describeError } from '../../liara/errors';
 import type { AppEvent } from '../../liara/types';
 import { ageMinutes, appNameSchema, appUrlFor, ok } from '../helpers';
 import { planInfo } from '../liara/apps';
-import { collectMetrics, countByReason, fetchEvents, fetchLogs } from '../liara/observe';
+import { collectMetrics, countByReason, fetchEvents, fetchLogs, ofRelease } from '../liara/observe';
 import { httpProbe } from '../local/http-probe';
 import { defineTool, type ToolContext } from '../registry';
 
@@ -58,8 +58,7 @@ export async function collectEvidence(ctx: ToolContext, appName: string, windowM
   const appVal = app.status === 'fulfilled' ? app.value : null;
   const plan = appVal ? await planInfo(ctx, appVal.planID).catch(() => null) : null;
   const page = releases.status === 'fulfilled' ? releases.value : null;
-  const currentId = page?.currentRelease ?? null;
-  const current = page?.releases.find((r) => r._id === currentId) ?? page?.releases.find((r) => /READY/i.test(r.state)) ?? null;
+  const current = page ? runningRelease(page) : null;
   // Code deploys only: env changes are ENV_UPDATE releases on top of the same code [probe].
   const latest = page?.releases.find(isCodeRelease) ?? null;
   const newest = page?.releases[0] ?? null;
@@ -75,8 +74,11 @@ export async function collectEvidence(ctx: ToolContext, appName: string, windowM
     if (status?.failReason) latestFailReason = typeof status.failReason === 'string' ? status.failReason : JSON.stringify(status.failReason);
   }
 
-  const logLines = logs.status === 'fulfilled' ? logs.value : [];
-  const evs = events.status === 'fulfilled' ? events.value : [];
+  // Only what the running release did: an old container's logs/events (before a deploy, rollback
+  // or env change) would point at problems that are already gone [live acceptance 2026-10-23].
+  const live = page ? liveReleaseIds(page) : null;
+  const logLines = ofRelease(logs.status === 'fulfilled' ? logs.value : [], live);
+  const evs = ofRelease(events.status === 'fulfilled' ? events.value : [], live);
   const h = health.status === 'fulfilled' ? health.value : null;
   const bal = balance.status === 'fulfilled' && balance.value.known ? balance.value.amountIRT : undefined;
   const hourly = appVal?.hourlyPrice ?? plan?.hourlyPriceIRT ?? null;

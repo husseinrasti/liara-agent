@@ -59,6 +59,20 @@ export const RELEASE_FAILED = /FAIL|CANCEL|ERROR|TIMEOUT|TIMEDOUT|UNHEALTHY/i;
  */
 export const isCodeRelease = (r: { type?: string | null }) => !r.type || /^DEPLOY$/i.test(r.type);
 
+/** The release whose container runs now: `currentRelease` when it is READY, else the newest READY one. */
+export function runningRelease<R extends { _id: string; state: string }>(page: { currentRelease?: string | null; releases: R[] }): R | null {
+  return page.releases.find((r) => r._id === page.currentRelease && RELEASE_READY.test(r.state)) ?? page.releases.find((r) => RELEASE_READY.test(r.state)) ?? null;
+}
+
+/**
+ * Ids of the running release and every newer one (attempts that never became READY, e.g. UNHEALTHY).
+ * Logs/events of older releases come from replaced containers. Null when nothing is READY.
+ */
+export function liveReleaseIds(page: { currentRelease?: string | null; releases: { _id: string; state: string }[] }): Set<string> | null {
+  const running = runningRelease(page);
+  return running ? new Set(page.releases.slice(0, page.releases.indexOf(running) + 1).map((r) => r._id)) : null;
+}
+
 export class ReleaseWaitError extends Error {
   override name = 'ReleaseWaitError';
   constructor(

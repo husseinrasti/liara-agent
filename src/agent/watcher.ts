@@ -7,7 +7,7 @@
 import { getBalance } from '../liara/endpoints/account';
 import { getApp } from '../liara/endpoints/apps';
 import { appUrlFor, faNum, formatIRT } from '../tools/helpers';
-import { collectMetrics, fetchEvents } from '../tools/liara/observe';
+import { collectMetrics, fetchEvents, liveReleases, ofRelease } from '../tools/liara/observe';
 import { healthLineFa, httpProbe, type HealthResult } from '../tools/local/http-probe';
 import { getTool, runTool } from '../tools/registry';
 import { raiseAlert, resolveAlerts, type AlertInput, type AlertRow } from './alerts';
@@ -100,11 +100,12 @@ export class Watcher {
     let hourly = 0;
     if (watched) {
       const st = this.state.get(appName) ?? { healthFails: 0, latencyHigh: 0, memHigh: 0, healthyTicks: 0 };
-      const [h, m, e, a] = await Promise.allSettled([
+      const [h, m, e, a, r] = await Promise.allSettled([
         httpProbe(appUrlFor(ctx, appName), { samples: 1, timeoutMs: 10_000, fetchImpl: ctx.httpFetch, now: ctx.now }),
         collectMetrics(ctx, appName, 15),
         fetchEvents(ctx, appName, 10),
         getApp(ctx.liara, appName),
+        liveReleases(ctx, appName),
       ]);
       health = h.status === 'fulfilled' ? h.value : null;
       const digest = m.status === 'fulfilled' ? m.value.digest : null;
@@ -138,7 +139,7 @@ export class Watcher {
       let crashCount = 0;
       if (e.status === 'fulfilled') {
         const since = st.lastEventsAt ?? now.getTime() - 10 * 60_000;
-        const crashes = e.value.filter((ev) => CRASH.test(ev.reason ?? '') && Date.parse(ev.ts) > since);
+        const crashes = ofRelease(e.value, r.status === 'fulfilled' ? r.value : null).filter((ev) => CRASH.test(ev.reason ?? '') && Date.parse(ev.ts) > since);
         crashCount = crashes.length;
         if (crashes.length) {
           const reasons = [...new Set(crashes.map((c) => eventNameFa(c.reason ?? '') ?? c.reason))].join('، ');

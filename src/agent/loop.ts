@@ -33,7 +33,12 @@ export interface TurnResult {
 
 const STEP_BUDGET_FA = '\n\nبه سقف مراحل این نوبت رسیدم. اگر بخواهید ادامه می‌دهم؛ کافی است بنویسید «ادامه بده».';
 
+/** Provider budget/quota exhausted (e.g. a gateway's "Spending limit reached" / budget_exceeded). */
+const LLM_BUDGET = /spending limit|budget_exceeded|insufficient_quota|exceeded your current quota/i;
+
 export function turnErrorFa(err: unknown): string {
+  const raw = err instanceof Error ? `${err.message} ${APICallError.isInstance(err) ? (err.responseBody ?? '') : ''}` : String(err);
+  if (LLM_BUDGET.test(raw)) return 'سقف هزینه‌ی کلید سرویس هوش مصنوعی پر شده است. تا وقتی اعتبارش بیشتر نشود یا کلید دیگری تنظیم نشود، نمی‌توانم پاسخ بدهم.';
   if (APICallError.isInstance(err)) {
     if (err.statusCode === 401 || err.statusCode === 403) return 'اتصال به سرویس هوش مصنوعی برقرار نشد؛ کلید API آن معتبر نیست.';
     if (err.statusCode === 429) return 'سرویس هوش مصنوعی فعلاً شلوغ است؛ چند لحظه بعد دوباره امتحان کنید.';

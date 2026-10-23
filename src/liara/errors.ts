@@ -27,10 +27,13 @@ export class LiaraApiError extends Error {
 }
 
 const BALANCE_HINT = /balance|credit|insufficient|موجودی|اعتبار/i;
+/** 428 "Max deployment count in day." — every feature bundle caps deploys per app per day (basic 20, standard 50) [live]. */
+const DAILY_DEPLOY_LIMIT = /max deployment count/i;
 
 export function userMessageFor(status: number, code?: string, message = ''): string {
   if (code === 'TIMEOUT') return 'پاسخ لیارا بیش از حد طول کشید (تایم‌اوت). کمی بعد دوباره امتحان می‌کنیم.';
   if (status === 0) return 'ارتباط با لیارا برقرار نشد. اتصال اینترنت یا در دسترس بودن لیارا را بررسی کنید.';
+  if (DAILY_DEPLOY_LIMIT.test(message)) return 'سقف تعداد انتشار روزانه‌ی این سرویس پر شده است (بسته‌ی امکانات basic بیست بار در روز اجازه می‌دهد). تا فردا صبر کنید یا از پنل لیارا بسته‌ی امکانات سرویس را ارتقا دهید.';
   if (status === 402 || BALANCE_HINT.test(message)) return 'موجودی حساب لیارا کافی نیست. لطفاً از پنل لیارا حساب را شارژ کنید.';
   if (status === 401) return 'توکن API لیارا نامعتبر است یا منقضی شده. یک توکن تازه از پنل لیارا بگیرید.';
   if (status === 403) return 'اجازه‌ی انجام این کار با این توکن وجود ندارد (دسترسی محدود است).';

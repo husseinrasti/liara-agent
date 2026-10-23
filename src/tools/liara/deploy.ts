@@ -120,7 +120,7 @@ export async function verifyRelease(ctx: ToolContext, appName: string, before: u
   const rel = releaseID ? page.releases.find((r) => r._id === releaseID) : page.releases[0];
   const ready = Boolean(rel && RELEASE_READY.test(rel.state));
   const started = ready && rel ? await waitForContainerStart(ctx, appName, rel._id) : null;
-  const health = await verifyAppHealthy(ctx, appName, sinceOf(before, ctx));
+  const health = await verifyAppHealthy(ctx, appName, sinceOf(before, ctx), ready ? rel?._id : undefined);
   const ok = ready && health.ok;
   progress(ctx, 'health', ok ? 'done' : 'failed', health.evidence[health.evidence.length - 1], appUrlFor(ctx, appName));
   const startLine = started === null ? [] : [started ? 'نسخه‌ی جدید روی سرور اجرا شد' : 'اجرای نسخه‌ی جدید هنوز در رویدادهای لیارا دیده نشده'];

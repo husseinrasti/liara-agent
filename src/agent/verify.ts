@@ -9,7 +9,7 @@ import { getReleases } from '../liara/endpoints/apps';
 import { RELEASE_READY } from '../liara/endpoints/deploy';
 import { appUrlFor, minutesAgo } from '../tools/helpers';
 import { crashEventsSince } from '../tools/liara/checks';
-import { collectMetrics, fetchEvents, fetchLogs } from '../tools/liara/observe';
+import { collectMetrics, fetchEvents, fetchLogs, liveReleases, ofRelease } from '../tools/liara/observe';
 import { healthLineFa, httpProbe } from '../tools/local/http-probe';
 import type { ToolContext, ToolDef, ToolResult } from '../tools/registry';
 import { raiseAlert, resolveAlerts } from './alerts';
@@ -69,17 +69,19 @@ function pathGet(obj: unknown, p: string): unknown {
 export async function runVerifyChecks(ctx: ToolContext, appName: string, checks: VerifyCheck[], since: Date): Promise<{ ok: boolean; evidence: string[] }> {
   const evidence: string[] = [];
   let ok = true;
+  // rows from a replaced container (old release) do not count against the fix
+  const running = checks.some((c) => c.kind === 'no_event' || c.kind === 'no_log') ? await liveReleases(ctx, appName).catch(() => null) : null;
   for (const c of checks) {
     try {
       if (c.kind === 'no_event') {
         const from = new Date(Math.max(since.getTime(), minutesAgo(ctx, c.withinMinutes).getTime()));
         const re = new RegExp(c.match, 'i');
-        const n = (await fetchEvents(ctx, appName, c.withinMinutes + 5)).filter((e) => new Date(e.ts) >= from && re.test(`${e.reason ?? ''} ${e.message}`)).length;
+        const n = ofRelease(await fetchEvents(ctx, appName, c.withinMinutes + 5), running).filter((e) => new Date(e.ts) >= from && re.test(`${e.reason ?? ''} ${e.message}`)).length;
         evidence.push(`${eventNameFa(c.match) ?? `رویداد ${c.match}`} بعد از اقدام: ${numFa(n)} بار`);
         if (n > 0) ok = false;
       } else if (c.kind === 'no_log') {
         const re = new RegExp(c.match, 'i');
-        const n = (await fetchLogs(ctx, appName, c.withinMinutes)).filter((l) => new Date(l.t) >= since && re.test(l.msg)).length;
+        const n = ofRelease(await fetchLogs(ctx, appName, c.withinMinutes), running).filter((l) => new Date(l.t) >= since && re.test(l.msg)).length;
         evidence.push(eventNameFa(c.match) ? `لاگ‌های ${eventNameFa(c.match)} بعد از اقدام: ${numFa(n)} خط` : `خطوط لاگ شبیه «${c.match}» بعد از اقدام: ${numFa(n)}`);
         if (n > 0) ok = false;
       } else if (c.kind === 'health') {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { fakeClient, fakeContext } from '../../test-utils/fake-liara';
+import { liveReleaseIds, runningRelease } from '../../liara/endpoints/deploy';
 import { collectEvidence } from '../composite/collect-evidence';
+import { crashEventsSince } from '../liara/checks';
 import { currentReleaseId, pickRollbackTarget, waitForContainerStart } from '../liara/deploy';
 
 const MB = 1024 * 1024;
@@ -121,5 +123,65 @@ describe('collect_evidence (OOM scenario over a fake Liara)', () => {
     expect(p.account).toMatchObject({ balanceIRT: 50_000, lowBalance: false });
     expect(p.health).not.toBeNull();
     expect(p.limitations.join(' ')).toMatch(/no HTTP access logs/);
+  });
+});
+
+describe('scoping to the running release [live acceptance: replaced containers keep running]', () => {
+  const now = Date.parse('2026-10-22T12:00:00Z');
+  const sec = (iso: string) => String(Date.parse(iso) / 1000);
+  const ev = (release: string, action: string, iso: string) => ({ id: `c-${release}`, status: action, action, time: sec(iso), release, tag: release });
+  // r3 = broken build (FAILED), r2 = running healthy code, r1 = older release that logged a missing env
+  const releases = {
+    total: 3,
+    currentRelease: 'r2',
+    releases: [
+      { _id: 'r3', type: 'DEPLOY', state: 'FAILED', createdAt: '2026-10-22T11:58:00Z', tag: 'v3' },
+      { _id: 'r2', type: 'DEPLOY', state: 'READY', createdAt: '2026-10-22T11:55:00Z', tag: 'v2' },
+      { _id: 'r1', type: 'DEPLOY', state: 'READY', createdAt: '2026-10-22T11:40:00Z', tag: 'v1' },
+    ],
+  };
+  const client = fakeClient({
+    'GET /v1/me': { body: { plans: { projects: {} } } },
+    'GET /v1/billing': { body: { user: { balance: 50_000 } } },
+    'GET /v1/projects/shop': { body: { project: { _id: 'p1', project_id: 'shop', type: 'node', status: 'ACTIVE', scale: 1, planID: 'small-g2', envs: [] } } },
+    'GET /v1/projects/shop/applets': { status: 500, body: { message: 'internal' } },
+    'GET /v1/projects/shop/releases': { body: releases },
+    'GET /v1/projects/shop/events': { body: { data: [ev('r2', 'start', '2026-10-22T11:56:00Z'), ev('r1', 'oom', '2026-10-22T11:56:20Z'), ev('r1', 'die', '2026-10-22T11:56:21Z'), ev('r1', 'start', '2026-10-22T11:56:22Z')].reverse() } },
+    'GET /v2/projects/shop/logs': {
+      body: {
+        data: [
+          { metaData: { releaseId: 'r1' }, values: [[ns('2026-10-22T11:45:00Z'), JSON.stringify({ _entry: 'Error: API_KEY is not set', type: 'stderr' })]] },
+          { metaData: { releaseId: 'r2' }, values: [[ns('2026-10-22T11:56:05Z'), JSON.stringify({ _entry: 'listening on 3000', type: 'stdout' })]] },
+        ],
+      },
+    },
+    'GET /v2/releases/r3/build-logs': { body: { release: { _id: 'r3', state: 'FAILED' }, buildOutput: [{ _id: 'b1', line: 'npm ERR! code EJSONPARSE', stream: 'STDERR', releaseID: 'r3', createdAt: '2026-10-22T11:58:30Z' }] } },
+    'GET /v1/releases/r3': { body: { release: { _id: 'r3', state: 'FAILED' } } },
+    'GET /v1/projects/shop/metrics/summary': { body: { cpuUsage: [], memoryUsage: [], disksUsage: [] } },
+    '*': { body: { end: 0, result: [], domains: [] } },
+  });
+  const ctx = () => fakeContext(client, { now: () => new Date(now) });
+
+  it('picks the READY current release, and newer attempts stay in scope', () => {
+    expect(runningRelease(releases)?._id).toBe('r2');
+    expect(runningRelease({ ...releases, currentRelease: 'r3' })?._id).toBe('r2');
+    expect([...liveReleaseIds(releases)!]).toEqual(['r3', 'r2']);
+    expect(liveReleaseIds({ releases: [] })).toBeNull();
+  });
+
+  it('collect_evidence leaves out an older release\'s logs and crashes', async () => {
+    const p = await collectEvidence(ctx(), 'shop', 60);
+    expect(p.app?.currentRelease?.id).toBe('r2');
+    expect(p.logs.lastLines.join('\n')).not.toMatch(/API_KEY/);
+    expect(p.logs.lastLines.join('\n')).toMatch(/listening on 3000/);
+    expect(p.events.byReason.OOMKilled).toBeUndefined();
+    expect(p.logs.buildLog?.join('\n')).toMatch(/EJSONPARSE/);
+  });
+
+  it('crash events after a rollback count only for the new release', async () => {
+    const since = new Date('2026-10-22T11:55:30Z');
+    expect(await crashEventsSince(ctx(), 'shop', since, 'r2')).toHaveLength(0);
+    expect((await crashEventsSince(ctx(), 'shop', since, 'r1')).map((e) => e.reason)).toContain('OOMKilled');
+    expect(await crashEventsSince(ctx(), 'shop', since)).toHaveLength(0);
   });
 });

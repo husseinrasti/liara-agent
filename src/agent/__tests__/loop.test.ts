@@ -91,4 +91,9 @@ describe('runTurn', () => {
     expect(events.map((e) => e.type).slice(-2)).toEqual(['error', 'done']);
     expect(turnErrorFa(new Error('fetch failed'))).toMatch(/ارتباط/);
   });
+
+  it('says plainly when the LLM key is out of budget [live: gateway budget_exceeded]', () => {
+    expect(turnErrorFa(new Error('Spending limit reached for this API key.'))).toMatch(/سقف هزینه/);
+    expect(turnErrorFa(new Error('Failed after 3 attempts. Last error: You exceeded your current quota'))).toMatch(/سقف هزینه/);
+  });
 });

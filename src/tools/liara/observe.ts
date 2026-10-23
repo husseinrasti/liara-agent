@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { isErrorLine } from '../../agent/evidence/logs';
 import { summarizeMetrics, type MetricsDigest } from '../../agent/evidence/metrics';
 import { getApp, getApplets, getReleases } from '../../liara/endpoints/apps';
+import { liveReleaseIds } from '../../liara/endpoints/deploy';
 import { getEvents } from '../../liara/endpoints/events';
 import { getLogs } from '../../liara/endpoints/logs';
 import { getCpu, getMemory, getMetricsSummary, getNetRx, getNetTx } from '../../liara/endpoints/metrics';
@@ -18,11 +19,28 @@ export interface CompactLogLine {
   t: string;
   type?: string;
   msg: string;
+  /** release id of the container that wrote the line (v2 logs) */
+  release?: string;
 }
 
 export async function fetchLogs(ctx: ToolContext, appName: string, sinceMinutes: number): Promise<CompactLogLine[]> {
   const lines = await getLogs(ctx.liara, appName, minutesAgo(ctx, sinceMinutes));
-  return lines.map((l) => ({ t: l.datetime, type: l.type ?? undefined, msg: clip(l.message.replace(/\s+$/, ''), 500) }));
+  return lines.map((l) => ({ t: l.datetime, type: l.type ?? undefined, msg: clip(l.message.replace(/\s+$/, ''), 500), ...(l.releaseId ? { release: l.releaseId } : {}) }));
+}
+
+/** The running release and newer attempts (see liveReleaseIds); null when unknown. */
+export async function liveReleases(ctx: ToolContext, appName: string): Promise<Set<string> | null> {
+  return liveReleaseIds(await getReleases(ctx.liara, appName, 1, 10));
+}
+
+/**
+ * Keeps rows written by the running release (and rows without a release id). After a deploy or
+ * rollback the replaced container keeps running, logging and even OOM-ing for a minute or more
+ * [live acceptance 2026-10-23]; its rows say nothing about the new release.
+ */
+export function ofRelease<T extends { release?: string }>(rows: T[], keep: string | ReadonlySet<string> | null | undefined): T[] {
+  if (!keep) return rows;
+  return rows.filter((r) => !r.release || (typeof keep === 'string' ? r.release === keep : keep.has(r.release)));
 }
 
 export const getAppLogsTool = defineTool({

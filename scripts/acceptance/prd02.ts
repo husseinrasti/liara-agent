@@ -18,7 +18,7 @@ import { ConfigError, getConfig, ROOT_DIR } from '../../src/config';
 import type { AgentEvent, EventOf } from '../../src/events';
 import { getEvents } from '../../src/liara/endpoints/events';
 import { createLogger } from '../../src/logger';
-import { collectMetrics } from '../../src/tools/liara/observe';
+import { collectMetrics, ofRelease } from '../../src/tools/liara/observe';
 import { createSimulatedDeps } from '../../src/sim/deps';
 import { createRuntime } from '../../src/tools';
 import { Acceptance, assert, runCommand } from './harness';
@@ -80,15 +80,17 @@ async function main() {
   await t.check('3. leak → OOM → diagnosis oom_kill (≥ 0.6) with a sensible action', async () => {
     const healthy = await deployFixture(rt, app, 'healthy');
     assert(healthy.ok, `healthy deploy: ${healthy.message}`);
+    const leakStarted = new Date();
     const leak = await deployFixture(rt, app, 'leak');
     assert(leak.ok || /UNHEALTHY/.test(leak.message), `leak deploy: ${leak.message}`);
     const ctx = toolContextFor(rt);
+    // Signals of the leak release itself: an earlier run's leaking container may still be in the window.
     const signal = await waitFor(
       async () => {
-        const ev = await getEvents(rt.deps.liara, app, { start: new Date(Date.now() - 15 * 60_000), end: new Date() });
+        const ev = ofRelease(await getEvents(rt.deps.liara, app, { start: leakStarted, end: new Date() }), leak.releaseID);
         if (ev.some((e) => /OOMKill/i.test(e.reason ?? ''))) return 'OOMKilled event';
         const { digest } = await collectMetrics(ctx, app, 15);
-        return (digest.memory?.pctOfLimit ?? 0) >= 90 ? `memory ${digest.memory?.pctOfLimit}%` : null;
+        return (digest.memory?.lastPctOfLimit ?? 0) >= 90 ? `memory ${digest.memory?.lastPctOfLimit}%` : null;
       },
       { timeoutMs: 6 * 60_000, intervalMs: 20_000, sleep },
     );

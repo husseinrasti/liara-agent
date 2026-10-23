@@ -3,6 +3,7 @@ import { getApplets } from '../../liara/endpoints/apps';
 import { getEvents } from '../../liara/endpoints/events';
 import { healthLineFa, waitForHealthy, type HealthResult } from '../local/http-probe';
 import { appUrlFor } from '../helpers';
+import { liveReleases, ofRelease } from './observe';
 import type { ToolContext, VerifyOutcome } from '../registry';
 
 export const CRASH_REASON = /OOMKill|BackOff|CrashLoop|Exited|Fail|Unhealthy|Evict|Error/i;
@@ -14,9 +15,13 @@ export async function appletsState(ctx: ToolContext, appName: string) {
   return { applets, states, running, allRunning: applets.length > 0 && running === applets.length };
 }
 
-export async function crashEventsSince(ctx: ToolContext, appName: string, since: Date) {
-  const events = await getEvents(ctx.liara, appName, { start: since, end: ctx.now() });
-  return events.filter((e) => new Date(e.ts) >= since && CRASH_REASON.test(e.reason ?? ''));
+/** Crash events since `since` from `releaseID`, else from the running release and newer attempts. */
+export async function crashEventsSince(ctx: ToolContext, appName: string, since: Date, releaseID?: string) {
+  const [events, running] = await Promise.all([
+    getEvents(ctx.liara, appName, { start: since, end: ctx.now() }),
+    releaseID ? Promise.resolve(releaseID) : liveReleases(ctx, appName).catch(() => null),
+  ]);
+  return ofRelease(events, running).filter((e) => new Date(e.ts) >= since && CRASH_REASON.test(e.reason ?? ''));
 }
 
 export async function healthOf(ctx: ToolContext, appName: string, deadlineMs = 45_000): Promise<HealthResult> {
@@ -24,12 +29,12 @@ export async function healthOf(ctx: ToolContext, appName: string, deadlineMs = 4
 }
 
 /** Standard "is the app up again?" verification: applets running (when the API has them), no new crash events, HTTP healthy. */
-export async function verifyAppHealthy(ctx: ToolContext, appName: string, since: Date): Promise<VerifyOutcome> {
+export async function verifyAppHealthy(ctx: ToolContext, appName: string, since: Date, releaseID?: string): Promise<VerifyOutcome> {
   const evidence: string[] = [];
   let ok = true;
   const [applets, crashes, health] = await Promise.allSettled([
     appletsState(ctx, appName),
-    crashEventsSince(ctx, appName, since),
+    crashEventsSince(ctx, appName, since, releaseID),
     healthOf(ctx, appName),
   ]);
   if (applets.status === 'fulfilled') {
