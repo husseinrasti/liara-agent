@@ -16,12 +16,14 @@
     "typecheck": "tsc --noEmit",
     "probe": "tsx scripts/probe-liara.ts",
     "mcp": "tsx src/mcp/server.ts",
+    "mcp:smoke": "tsx scripts/mcp-smoke.ts",
     "accept:prd01": "AUTO_APPROVE=true tsx scripts/acceptance/prd01.ts",
     "accept:prd02": "AUTO_APPROVE=true tsx scripts/acceptance/prd02.ts",
     "accept:prd03": "tsx scripts/acceptance/prd03.ts",
     "dev:sim": "LIARA_FAKE=1 next dev -p 3210",
     "chaos": "tsx scripts/chaos.ts",
-    "shots": "tsx scripts/shots.ts"
+    "shots": "tsx scripts/shots.ts",
+    "deploy:self": "tsx scripts/deploy-self.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^4.0.102",

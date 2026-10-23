@@ -2,7 +2,10 @@
  * PRD-02 acceptance — headless agent against the REAL Liara account and the
  * configured LLM. Needs DEMO_APP_NAME, a reachable api.liara.ir and an LLM key.
  * Usage: npm run accept:prd02 (sets AUTO_APPROVE=true; step 9 turns it off).
+ *   `-- --sim` runs the same checks against the LIARA_FAKE simulator (real LLM):
+ *   useful offline, NOT a substitute for the live run.
  */
+import { cpSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { approve } from '../../src/agent/approvals';
 import { runTurn } from '../../src/agent/loop';
@@ -12,15 +15,19 @@ import { createAgentRuntime, toolContextFor } from '../../src/agent/runtime';
 import { Watcher } from '../../src/agent/watcher';
 import '../../src/agent/tools';
 import { ConfigError, getConfig, ROOT_DIR } from '../../src/config';
-import type { EventOf } from '../../src/events';
+import type { AgentEvent, EventOf } from '../../src/events';
 import { getEvents } from '../../src/liara/endpoints/events';
 import { createLogger } from '../../src/logger';
 import { collectMetrics } from '../../src/tools/liara/observe';
+import { createSimulatedDeps } from '../../src/sim/deps';
 import { createRuntime } from '../../src/tools';
 import { Acceptance, assert, runCommand } from './harness';
 import { act, deployFixture, FIXTURES, lastDiagnosis, PERSIAN, sessionWithEvents, textOf, waitFor } from './prd02-helpers';
 
+const sim = process.argv.includes('--sim');
+
 async function main() {
+  if (sim) process.env.LIARA_API_TOKEN ||= 'simulated';
   let cfg;
   try {
     cfg = getConfig();
@@ -31,20 +38,24 @@ async function main() {
     }
     throw err;
   }
-  const app = cfg.liara.demoAppName;
+  const logger = createLogger({ level: 'warn', name: 'accept02' });
+  const simulated = sim ? createSimulatedDeps({ dbFile: 'accept-prd02-sim.db', logger }) : null;
+  const app = simulated ? simulated.deps.config.liara.demoAppName : cfg.liara.demoAppName;
   if (!app) {
     console.error('DEMO_APP_NAME is not set. Run `npm run probe` first.');
     process.exit(2);
   }
-  const deps = createRuntime({ logger: createLogger({ level: 'warn', name: 'accept02' }) });
-  const pre = await deps.liara.requestRaw({ path: '/v1/me', retries: 0, timeoutMs: 15_000 }).catch((e: Error) => e);
-  if (pre instanceof Error || pre.status >= 400) {
-    console.error(`Liara API not usable from this process (${pre instanceof Error ? pre.message : `HTTP ${pre.status}`}). Nothing was run.`);
-    process.exit(3);
+  const deps = simulated?.deps ?? createRuntime({ logger });
+  if (!simulated) {
+    const pre = await deps.liara.requestRaw({ path: '/v1/me', retries: 0, timeoutMs: 15_000 }).catch((e: Error) => e);
+    if (pre instanceof Error || pre.status >= 400) {
+      console.error(`Liara API not usable from this process (${pre instanceof Error ? pre.message : `HTTP ${pre.status}`}). Nothing was run.`);
+      process.exit(3);
+    }
   }
-  const rt = createAgentRuntime({ deps, autoApprove: true });
+  const rt = createAgentRuntime({ deps, autoApprove: true, ...(simulated ? { httpFetch: simulated.sim.httpFetch } : {}) });
   const sleep = rt.sleep;
-  const t = new Acceptance(`PRD-02 acceptance — app "${app}", ${cfg.llm.provider}`);
+  const t = new Acceptance(`PRD-02 acceptance — app "${app}", ${cfg.llm.provider}${sim ? ' — SIMULATOR (LIARA_FAKE, not the real Liara API)' : ''}`);
   const wizardApp = `${app}-wiz`.slice(0, 30);
   let wizardCreated = false;
 
@@ -65,6 +76,7 @@ async function main() {
   });
 
   let recommended: string | undefined;
+  let incidentEvents: AgentEvent[] = [];
   await t.check('3. leak → OOM → diagnosis oom_kill (≥ 0.6) with a sensible action', async () => {
     const healthy = await deployFixture(rt, app, 'healthy');
     assert(healthy.ok, `healthy deploy: ${healthy.message}`);
@@ -83,6 +95,7 @@ async function main() {
     assert(signal, 'no OOM signal within 6 minutes');
     const { session, events } = sessionWithEvents(rt, app);
     await runTurn(rt, session, 'سایتم کند شده و گاهی ۵۰۰ می‌ده');
+    incidentEvents = events;
     const d = lastDiagnosis(events);
     assert(d, 'no diagnosis event');
     const top = d.causes[0]!;
@@ -93,9 +106,14 @@ async function main() {
   });
 
   await t.check('4. approved fix runs and is verified (rollback must restore health)', async () => {
-    const { session, events } = sessionWithEvents(rt, app);
-    await runTurn(rt, session, 'اقدام پیشنهادی را اجرا کن');
-    const v = events.filter((e): e is EventOf<'verify_result'> => e.type === 'verify_result').pop();
+    // With AUTO_APPROVE the agent often proposes and runs the fix in the incident turn itself.
+    const verifyOf = (events: AgentEvent[]) => events.filter((e): e is EventOf<'verify_result'> => e.type === 'verify_result').pop();
+    let v = verifyOf(incidentEvents);
+    if (!v) {
+      const { session, events } = sessionWithEvents(rt, app);
+      await runTurn(rt, session, 'اقدام پیشنهادی را اجرا کن');
+      v = verifyOf(events);
+    }
     assert(v, 'no verify_result');
     if (v.action === 'rollback_release') assert(v.fixed, `rollback not verified: ${v.evidence.join(' | ')}`);
     return `${v.action} fixed=${v.fixed}: ${v.evidence.join(' | ').slice(0, 120)}`;
@@ -128,7 +146,10 @@ async function main() {
 
   await t.check('7. deploy assistant: plan card, all stages, .liara.run URL, health 200', async () => {
     const { session, events } = sessionWithEvents(rt);
-    const projectPath = path.join(FIXTURES, 'healthy');
+    // A copy: the wizard writes liara.json into the project it deploys, and the fixture must stay pristine.
+    const projectPath = path.join(deps.config.dataDir, 'accept-prd02', 'healthy');
+    rmSync(projectPath, { recursive: true, force: true });
+    cpSync(path.join(FIXTURES, 'healthy'), projectPath, { recursive: true });
     await runTurn(rt, session, `این پروژه رو دیپلوی کن: ${projectPath} — اسم سرویس: ${wizardApp}`);
     for (let i = 0; i < 2 && !events.some((e) => e.type === 'deploy_progress'); i++) await runTurn(rt, session, 'بله، با همین پلن ادامه بده');
     wizardCreated = events.some((e) => e.type === 'deploy_progress' && e.stage === 'create' && e.status === 'done');

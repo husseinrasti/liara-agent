@@ -17,7 +17,8 @@ import { ConfigError, ROOT_DIR } from '../config';
 import { finishAudit, recordVerify, startAudit } from '../db/repo';
 import type { AgentEventInput } from '../events';
 import { createLogger } from '../logger';
-import { compactForModel, createRuntime, createToolContext, getTool, runTool, toMcpTools, type RuntimeDeps, type ToolDef } from '../tools';
+import { createSimulatedDeps, isSimulated } from '../sim/deps';
+import { compactForModel, createRuntime, createToolContext, getTool, runTool, toMcpTools, type RuntimeDeps, type ToolContext, type ToolDef } from '../tools';
 
 const logger = createLogger({ name: 'mcp' });
 const version = (JSON.parse(readFileSync(path.join(ROOT_DIR, 'package.json'), 'utf8')) as { version: string }).version;
@@ -31,8 +32,12 @@ const INSTRUCTIONS = [
   'Results start with a Persian one-line summary for the end user.',
 ].join(' ');
 
+const SIM_NOTE = ' SIMULATOR MODE (LIARA_FAKE=1): apps and data are simulated, not a real Liara account; say so to the user.';
+
 let runtime: RuntimeDeps | null = null;
 let runtimeError: string | null = null;
+/** Public-URL fetch for health checks; the simulator answers for *.liara.run in LIARA_FAKE mode. */
+let httpFetch: typeof fetch | undefined;
 const models = new Map<ModelTier, LanguageModel | null>();
 
 /** LLM for agent-level tools (diagnose_app); absent when no LLM key is configured (rule-based fallback). */
@@ -63,7 +68,14 @@ function hasLlm(rt: RuntimeDeps): boolean {
 function getRuntime(): RuntimeDeps | null {
   if (runtime || runtimeError) return runtime;
   try {
-    runtime = createRuntime({ logger });
+    if (isSimulated()) {
+      const simulated = createSimulatedDeps({ dbFile: 'mcp-sim.db', logger });
+      runtime = simulated.deps;
+      httpFetch = simulated.sim.httpFetch;
+      logger.warn('LIARA_FAKE=1: serving the simulator, not the real Liara API');
+    } else {
+      runtime = createRuntime({ logger });
+    }
   } catch (err) {
     runtimeError = err instanceof ConfigError ? err.message : `startup failed: ${(err as Error).message}`;
     logger.error({ err: runtimeError }, 'mcp runtime unavailable');
@@ -73,6 +85,8 @@ function getRuntime(): RuntimeDeps | null {
 
 const text = (s: string, isError = false): CallToolResult => ({ content: [{ type: 'text', text: s }], isError });
 
+const contextFor = (rt: RuntimeDeps, extra: Partial<ToolContext> = {}) => createToolContext(rt, { sessionId: 'mcp', ...(httpFetch ? { httpFetch } : {}), ...extra });
+
 /** Returns an error result when the confirmation inputs required by the tool's risk tier are missing. */
 async function checkConfirmation(def: ToolDef, args: Record<string, unknown>, rt: RuntimeDeps): Promise<CallToolResult | null> {
   if (def.risk === 0) return null;
@@ -80,7 +94,7 @@ async function checkConfirmation(def: ToolDef, args: Record<string, unknown>, rt
   const field = def.confirmField ?? 'appName';
   if (def.risk === 2 && typeof args.confirmAppName === 'string' && args.confirmAppName === args[field]) return null;
   const parsed = def.input.safeParse(args);
-  const consequences = parsed.success && def.consequencesFa ? await def.consequencesFa(parsed.data, createToolContext(rt)) : null;
+  const consequences = parsed.success && def.consequencesFa ? await def.consequencesFa(parsed.data, contextFor(rt)) : null;
   const need =
     def.risk === 1
       ? 'Ask the user to approve, then call again with "confirm": true.'
@@ -101,7 +115,7 @@ async function callTool(name: string, rawArgs: Record<string, unknown>, notify: 
   const gate = await checkConfirmation(def, rawArgs, rt);
   if (gate) return gate;
   const { confirm: _c, confirmAppName: _n, ...args } = rawArgs;
-  const ctx = createToolContext(rt, { emit: notify, sessionId: 'mcp', ...(hasLlm(rt) ? { llm: llmFor(rt) } : {}) });
+  const ctx = contextFor(rt, { emit: notify, ...(hasLlm(rt) ? { llm: llmFor(rt) } : {}) });
 
   if (def.risk === 0) {
     const result = await runTool(def, args, ctx);
@@ -132,7 +146,7 @@ function render(result: Awaited<ReturnType<typeof runTool>>, verification?: { ok
 }
 
 async function main() {
-  const server = new Server({ name: 'liara-agent', version }, { capabilities: { tools: {}, logging: {} }, instructions: INSTRUCTIONS });
+  const server = new Server({ name: 'liara-agent', version }, { capabilities: { tools: {}, logging: {} }, instructions: isSimulated() ? INSTRUCTIONS + SIM_NOTE : INSTRUCTIONS });
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: toMcpTools() }));
   server.setRequestHandler(CallToolRequestSchema, async (req, extra) => {
     const progressToken = req.params._meta?.progressToken;
