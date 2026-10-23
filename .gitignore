@@ -13,3 +13,6 @@ dist/
 
 # hackathon intro video + extracted frames (third-party, large)
 video/
+
+# Next.js
+next-env.d.ts
