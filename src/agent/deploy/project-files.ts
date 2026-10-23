@@ -51,3 +51,13 @@ export function ensureLiaraJson(
   writeFileSync(file, `${JSON.stringify(body, null, 2)}\n`);
   return { written: true, path: file };
 }
+
+/** liara.json `disks` ({name, mountTo}) to mount in the release, as the CLI does; malformed entries are ignored. */
+export function liaraJsonDisks(json: Record<string, unknown> | undefined): { name: string; mountTo: string }[] | undefined {
+  const raw = json?.disks;
+  if (!Array.isArray(raw)) return undefined;
+  const disks = raw
+    .filter((d): d is { name: string; mountTo: string } => typeof d?.name === 'string' && typeof d?.mountTo === 'string')
+    .map(({ name, mountTo }) => ({ name, mountTo }));
+  return disks.length ? disks : undefined;
+}

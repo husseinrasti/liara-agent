@@ -54,6 +54,15 @@ const RAW_WORDS_FA: [RegExp, string][] = [
 ];
 export const plainFa = (text: string) => RAW_WORDS_FA.reduce((t, [re, fa]) => t.replace(re, fa), text);
 
+/**
+ * Most likely first, by confidence. "Broke after the last deploy" says when, not what, so a specific
+ * mechanism (OOM, crash, missing env…) with about the same confidence ranks above it.
+ */
+export function rankCauses<C extends { playbookId?: string; confidence: number }>(causes: C[]): C[] {
+  const key = (c: C) => c.confidence - (c.playbookId === 'recent_deploy_regression' ? 0.05 : 0);
+  return causes.map((c, i) => ({ c, i })).sort((a, b) => key(b.c) - key(a.c) || a.i - b.i).map((x) => x.c);
+}
+
 /** Clamps, checks quotes against the packet, validates actions, merges a strong rule candidate the LLM missed. */
 export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidates: Candidate[], logger: Logger = silentLogger): Diagnosis {
   const haystack = norm(JSON.stringify(packet));
@@ -73,15 +82,17 @@ export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidate
         }),
       explanation_fa: plainFa(c.explanation_fa),
     }))
-    .filter((c) => c.evidence.length > 0)
-    .slice(0, 4);
+    .filter((c) => c.evidence.length > 0);
+  // A real problem with evidence makes a "healthy" cause contradictory.
+  const problem = causes.some((c) => c.playbookId !== 'healthy' && c.confidence >= 0.6);
+  const ranked = rankCauses(problem ? causes.filter((c) => c.playbookId !== 'healthy') : causes).slice(0, 4);
 
   const top = candidates[0];
-  if (top && top.score >= 0.8 && top.playbookId !== 'healthy' && !causes.some((c) => c.playbookId === top.playbookId) && causes.length < 4) {
+  if (top && top.score >= 0.8 && top.playbookId !== 'healthy' && !ranked.some((c) => c.playbookId === top.playbookId) && ranked.length < 4) {
     logger.info({ playbookId: top.playbookId, score: top.score }, 'diagnosis: added strong rule candidate missing from LLM output');
-    causes.push(causeFromCandidate(top));
+    ranked.push(causeFromCandidate(top));
   }
-  if (!causes.length) throw new Error('LLM diagnosis had no causes with evidence');
+  if (!ranked.length) throw new Error('LLM diagnosis had no causes with evidence');
 
   const toAction = (a: LlmDiagnosis['recommendedAction']) => {
     if (!a) return null;
@@ -95,8 +106,8 @@ export function postProcess(llm: LlmDiagnosis, packet: EvidencePacket, candidate
 
   return DiagnosisSchema.parse({
     summaryFa: plainFa(llm.summaryFa),
-    severity: llm.severity,
-    causes,
+    severity: problem && llm.severity === 'healthy' ? 'warning' : llm.severity,
+    causes: ranked,
     recommendedAction,
     alternatives,
     manualStepsFa: [...new Set(manual)].slice(0, 5),

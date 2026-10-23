@@ -5,7 +5,7 @@ import { scriptedTextModel } from '../../test-utils/mock-model';
 import { oomPacket, PLANS } from '../../test-utils/packets';
 import { getTool, runTool } from '../../tools/registry';
 import type { LlmDiagnosis } from '../diagnosis-schema';
-import { diagnose, fallbackDiagnosis, postProcess } from '../diagnosis';
+import { diagnose, fallbackDiagnosis, postProcess, rankCauses } from '../diagnosis';
 import { getMemoryKey } from '../memory';
 import { evaluate } from '../playbooks/engine';
 import { toolContextFor } from '../runtime';
@@ -58,6 +58,21 @@ describe('postProcess', () => {
     const d = postProcess(raw, packet, evaluation.candidates);
     expect(d.summaryFa).toBe('بعد از برگشت به نسخه‌ی قبلی به نسخه‌ی آماده قبلی، بررسی سلامت سالم بود.');
     expect(d.causes[0]!.evidence[0]!.raw).toBe('Container shop was OOM killed');
+  });
+
+  it('ranks causes by confidence, a specific mechanism above "after the last deploy" at a near tie', () => {
+    const ids = (cs: { playbookId?: string }[]) => cs.map((c) => c.playbookId);
+    expect(ids(rankCauses([{ playbookId: 'recent_deploy_regression', confidence: 0.95 }, { playbookId: 'oom_kill', confidence: 0.99 }]))).toEqual(['oom_kill', 'recent_deploy_regression']);
+    expect(ids(rankCauses([{ playbookId: 'recent_deploy_regression', confidence: 0.96 }, { playbookId: 'crash_loop', confidence: 0.93 }]))).toEqual(['crash_loop', 'recent_deploy_regression']);
+    expect(ids(rankCauses([{ playbookId: 'recent_deploy_regression', confidence: 0.9 }, { playbookId: 'crash_loop', confidence: 0.6 }]))).toEqual(['recent_deploy_regression', 'crash_loop']);
+  });
+
+  it('drops a contradictory "healthy" cause when a real problem has evidence', () => {
+    const cause = (playbookId: string, confidence: number) => ({ ...llmOom.causes[0]!, playbookId, confidence });
+    const d = postProcess({ ...llmOom, severity: 'healthy', causes: [cause('healthy', 0.98), cause('build_failed', 1)] }, packet, evaluation.candidates);
+    expect(d.causes.map((c) => c.playbookId)[0]).toBe('build_failed');
+    expect(d.causes.some((c) => c.playbookId === 'healthy')).toBe(false);
+    expect(d.severity).toBe('warning');
   });
 
   it('adds a strong rule candidate the LLM missed', () => {

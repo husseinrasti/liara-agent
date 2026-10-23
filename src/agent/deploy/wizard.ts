@@ -20,7 +20,8 @@ import { buildArchive } from '../../tools/local/build-source-archive';
 import { defaultPort, platformSchema } from '../../tools/local/platforms';
 import { ProjectSourceError, resolveProjectPath } from '../../tools/local/project-source';
 import type { ToolContext, ToolResult } from '../../tools/registry';
-import { ensureLiaraJson, versionConfig } from './project-files';
+import { getMemoryKey, hasMemoryKey, setMemoryKey } from '../memory';
+import { ensureLiaraJson, liaraJsonDisks, versionConfig } from './project-files';
 
 export const DeployProjectInputSchema = z.object({
   path: z.string().min(1).describe('Local project folder or public git URL (same as analyze_project)'),
@@ -106,7 +107,8 @@ export async function deployProject(ctx: ToolContext, input: DeployProjectInput)
     stage('upload', 'done');
 
     stage('release', 'running');
-    const releaseID = await deployRelease(ctx.liara, input.appName, { sourceID, port, type: platform, platformConfig: versionConfig(platform, analysis), message: 'deployed by liara-agent' });
+    const disks = liaraJsonDisks(analysis.existingLiaraJson);
+    const releaseID = await deployRelease(ctx.liara, input.appName, { sourceID, port, type: platform, platformConfig: versionConfig(platform, analysis), message: 'deployed by liara-agent', ...(disks ? { disks } : {}) });
     linkSourceRelease(ctx.db, input.appName, sourceID, releaseID);
     stage('release', 'done');
 
@@ -114,6 +116,9 @@ export async function deployProject(ctx: ToolContext, input: DeployProjectInput)
     const built = await waitAndReport(ctx, input.appName, releaseID);
     if (!built.ok) return built;
     const url = appUrlFor(ctx, input.appName);
+    // Apps this assistant deploys are monitored by default, unless the user already chose otherwise.
+    const watchOn = !hasMemoryKey(ctx.db, input.appName, 'watch');
+    if (watchOn) setMemoryKey(ctx.db, input.appName, 'watch', true, ctx.now());
     return ok(
       {
         appName: input.appName,
@@ -124,9 +129,10 @@ export async function deployProject(ctx: ToolContext, input: DeployProjectInput)
         port,
         envKeys,
         wroteLiaraJson: liaraJson.written,
+        watch: watchOn || getMemoryKey(ctx.db, input.appName, 'watch'),
         archive: { sizeMB: archive.sizeMB, fileCount: archive.fileCount, excludedSecrets: archive.excludedSecrets },
       },
-      `نسخه‌ی جدید ساخته و روی ${url} منتشر شد.${liaraJson.written ? ' فایل liara.json را هم در پروژه ساختم.' : ''}`,
+      `نسخه‌ی جدید ساخته و روی ${url} منتشر شد.${liaraJson.written ? ' فایل liara.json را هم در پروژه ساختم.' : ''}${watchOn ? ' پایش خودکار این سرویس هم روشن شد.' : ''}`,
     );
   } catch (err) {
     if (err instanceof ProjectSourceError) {

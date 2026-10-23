@@ -1,8 +1,38 @@
 import { z } from 'zod';
 import { getApp } from '../../liara/endpoints/apps';
-import { getDisks, resizeDisk } from '../../liara/endpoints/disks';
+import { createDisk, getDisks, resizeDisk } from '../../liara/endpoints/disks';
 import { appNameSchema, ok } from '../helpers';
 import { defineTool } from '../registry';
+
+export const createDiskTool = defineTool({
+  name: 'create_disk',
+  title: 'Create disk',
+  description:
+    'Create a persistent disk for the app (files that must survive restarts and deploys, e.g. an SQLite database or uploads). Mount it by adding {"name","mountTo"} to the project liara.json `disks` and deploying. Costs per hour.',
+  input: z.object({
+    appName: appNameSchema,
+    diskName: z.string().regex(/^[a-z0-9][a-z0-9-]{1,30}$/, 'lowercase letters, digits and dashes'),
+    sizeGB: z.number().int().min(1).max(1000),
+  }),
+  risk: 2,
+  category: 'ops',
+  describeFa: (i) => `ساخت دیسک ${i.diskName} (${i.sizeGB} گیگابایت) برای سرویس ${i.appName}`,
+  consequencesFa: async (i) => ({
+    why: `یک دیسک ماندگار ${i.sizeGB} گیگابایتی با نام ${i.diskName} ساخته می‌شود تا فایل‌های برنامه با ری‌استارت و انتشار دوباره پاک نشوند.`,
+    reversible: true,
+    costNote: 'هزینه‌ی دیسک ساعتی از موجودی حساب کم می‌شود.',
+  }),
+  run: async (i, ctx) => {
+    await createDisk(ctx.liara, i.appName, { name: i.diskName, sizeGB: i.sizeGB });
+    return ok({ diskName: i.diskName, sizeGB: i.sizeGB }, `دیسک ${i.diskName} ساخته شد.`);
+  },
+  verify: async (i, _before, ctx) => {
+    const app = await getApp(ctx.liara, i.appName);
+    const disk = (await getDisks(ctx.liara, app._id)).disks.find((d) => d.name === i.diskName);
+    return { ok: Boolean(disk), evidence: [disk ? `دیسک ${i.diskName} در فهرست دیسک‌های سرویس هست (${disk.size ?? i.sizeGB} گیگابایت)` : `دیسک ${i.diskName} پیدا نشد`] };
+  },
+  verifyDelayMs: 3000,
+});
 
 export const resizeDiskTool = defineTool({
   name: 'resize_disk',
@@ -34,4 +64,4 @@ export const resizeDiskTool = defineTool({
   verifyDelayMs: 15_000,
 });
 
-export const diskTools = [resizeDiskTool];
+export const diskTools = [createDiskTool, resizeDiskTool];

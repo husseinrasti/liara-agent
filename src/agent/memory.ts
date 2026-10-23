@@ -53,6 +53,11 @@ export function getMemoryKey<K extends keyof AppMemory>(db: Db, appName: string,
   return row ? (JSON.parse(row.value) as AppMemory[K]) : structuredClone(DEFAULTS[key]);
 }
 
+/** True when the key was ever written for the app (an explicit `false` counts). */
+export function hasMemoryKey(db: Db, appName: string, key: keyof AppMemory): boolean {
+  return Boolean(db.prepare('SELECT 1 FROM app_memory WHERE appName = ? AND key = ?').get(appName, key));
+}
+
 export function setMemoryKey<K extends keyof AppMemory>(db: Db, appName: string, key: K, value: AppMemory[K], now = new Date()): void {
   db.prepare(
     `INSERT INTO app_memory (appName, key, value, updatedAt) VALUES (?, ?, ?, ?)
@@ -120,7 +125,7 @@ export function memorySummaryFa(db: Db, appName: string, now = new Date()): stri
     lines.push(`اقدام ${a.tool} (${minutesAgoFa(a.ts, now)}): ${result}`);
   }
   if (m.baseline?.samples) {
-    lines.push(`حالت عادی ۷ روز اخیر: رم ~${m.baseline.avgMemMB ?? '?'}MB، تأخیر میانه ~${m.baseline.p50LatencyMs ?? '?'}ms`);
+    lines.push(`حالت عادی ۷ روز اخیر: رم حدود ${m.baseline.avgMemMB ?? '?'} مگابایت، زمان پاسخ میانه حدود ${m.baseline.p50LatencyMs ?? '?'} میلی‌ثانیه`);
   }
   for (const n of m.userNotes.slice(-3)) lines.push(`یادداشت کاربر: ${n}`);
   if (m.pendingDomains.length) lines.push(`دامنه‌های در انتظار تأیید DNS: ${m.pendingDomains.map((d) => d.name).join('، ')}`);

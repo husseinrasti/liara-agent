@@ -24,6 +24,8 @@ export interface DeployReleaseInput {
   message?: string;
   /** Platform options as in liara.json (e.g. `{ version: "22" }` for node). */
   platformConfig?: Record<string, unknown>;
+  /** Disks to mount, as liara.json `disks` (the CLI sends them in the release body). */
+  disks?: { name: string; mountTo: string }[];
 }
 
 /** Creates a release from an uploaded source → releaseID. The build starts asynchronously. */
@@ -31,6 +33,7 @@ export async function deployRelease(c: LiaraClient, name: string, input: DeployR
   const body: Record<string, unknown> = { sourceID: input.sourceID, port: input.port, type: input.type };
   if (input.message) body.message = input.message;
   if (input.platformConfig) body.platformConfig = input.platformConfig;
+  if (input.disks?.length) body.disks = input.disks;
   const res = await c.request(ReleaseCreatedSchema, { method: 'POST', path: `${v2(name)}/releases`, body });
   return res.releaseID;
 }

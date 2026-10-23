@@ -7,7 +7,8 @@ import { extractProjectPlans } from '../../liara/plans';
 import { fakeAgent } from '../../test-utils/fake-agent';
 import { getTool } from '../../tools/registry';
 import { recommendPlan } from '../deploy/plan';
-import { ensureLiaraJson, suggestAppName, versionConfig } from '../deploy/project-files';
+import { ensureLiaraJson, liaraJsonDisks, suggestAppName, versionConfig } from '../deploy/project-files';
+import { getMemoryKey } from '../memory';
 import { policyExecutor } from '../policy';
 import { AgentSession } from '../session';
 import '../tools';
@@ -62,6 +63,12 @@ describe('project files', () => {
     expect(versionConfig('django', { pythonVersion: '3.12.4' })).toEqual({ pythonVersion: '3.12' });
     expect(versionConfig('node', { nodeVersion: '15' })).toBeUndefined();
   });
+
+  it('reads liara.json disks to mount, ignoring malformed entries', () => {
+    expect(liaraJsonDisks({ disks: [{ name: 'data', mountTo: '/data' }, { name: 'x' }, 'bad'] })).toEqual([{ name: 'data', mountTo: '/data' }]);
+    expect(liaraJsonDisks({ disks: [] })).toBeUndefined();
+    expect(liaraJsonDisks(undefined)).toBeUndefined();
+  });
 });
 
 function deployRoutes(balance = 10_000_000) {
@@ -100,6 +107,7 @@ describe('deploy_project wizard', () => {
     const dir = tempProject();
     const exec = policyExecutor(rt, session, { pendingApprovals: [] });
     const out = await exec(getTool('deploy_project')!, { path: dir, appName: 'my-shop', planID: 'medium-g2', envs: { PAYMENT_API_KEY: 'demo-secret' } }, { toolCallId: 'c1' });
+    expect(calls.find((c) => c.url.pathname === '/v2/projects/my-shop/releases')?.body).not.toHaveProperty('disks');
     expect(out).toMatchObject({ ok: true, data: { url: 'https://my-shop.liara.run', created: true, wroteLiaraJson: true, port: 3000 }, verification: { fixed: true } });
     const stages = events.filter((e) => e.type === 'deploy_progress').map((e) => `${(e as { stage: string }).stage}:${(e as { status: string }).status}`);
     expect(stages.filter((s) => s.endsWith(':done')).map((s) => s.split(':')[0])).toEqual(['analyze', 'create', 'envs', 'archive', 'upload', 'release', 'build', 'health']);
@@ -107,6 +115,7 @@ describe('deploy_project wizard', () => {
     expect(calls.find((c) => c.method === 'POST' && c.url.pathname === '/v1/projects')?.body).toMatchObject({ name: 'my-shop', planID: 'medium-g2', platform: 'node', bundlePlanID: 'free' });
     expect(calls.find((c) => c.url.pathname === '/v2/projects/my-shop/releases')?.body).toMatchObject({ sourceID: 'src-1', port: 3000, type: 'node', platformConfig: { version: 22 } });
     expect(existsSync(path.join(dir, 'liara.json'))).toBe(true);
+    expect(getMemoryKey(rt.deps.db, 'my-shop', 'watch')).toBe(true);
     const audit = rt.deps.db.prepare('SELECT args, ok, verifyOk FROM audit').get() as { args: string; ok: number; verifyOk: number };
     expect(audit).toMatchObject({ ok: 1, verifyOk: 1 });
     expect(audit.args).not.toContain('demo-secret');
@@ -134,5 +143,18 @@ describe('deploy_project wizard', () => {
     expect(out.ok).toBe(true);
     expect(events.find((e) => e.type === 'plan_recommendation')).toMatchObject({ recommendation: { planID: 'medium-g2', balance: { sufficient: true } } });
     expect(out.data).toMatchObject({ suggestedAppName: expect.stringMatching(/^my-shop-[a-z0-9-]+$/) });
+  });
+});
+
+describe('deploy_project with liara.json disks', () => {
+  it('mounts the disks from liara.json in the release, like the Liara CLI', async () => {
+    const { routes } = deployRoutes();
+    const { rt, calls } = fakeAgent({ routes, autoApprove: true });
+    const session = AgentSession.create(rt);
+    const dir = tempProject();
+    writeFileSync(path.join(dir, 'liara.json'), JSON.stringify({ app: 'my-shop', platform: 'node', port: 3000, disks: [{ name: 'data', mountTo: '/data' }] }));
+    const out = await policyExecutor(rt, session, { pendingApprovals: [] })(getTool('deploy_project')!, { path: dir, appName: 'my-shop', planID: 'medium-g2', envs: { PAYMENT_API_KEY: 'k' } }, { toolCallId: 'c1' });
+    expect(out.ok).toBe(true);
+    expect(calls.find((c) => c.url.pathname === '/v2/projects/my-shop/releases')?.body).toMatchObject({ disks: [{ name: 'data', mountTo: '/data' }] });
   });
 });
