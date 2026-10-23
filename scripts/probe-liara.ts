@@ -46,6 +46,21 @@ async function main() {
   }
   const logger = createLogger({ level: 'warn', name: 'probe' });
   const client = new LiaraClient({ token: cfg.liara.token, baseUrl: cfg.liara.baseUrl, teamId: cfg.liara.teamId, logger });
+
+  // Preflight: record nothing and change nothing unless the API answers with this token.
+  const pre = await client.requestRaw({ path: '/v1/me', retries: 0, timeoutMs: 15_000 }).catch((err: unknown) => err as Error);
+  if (pre instanceof Error) {
+    console.error(
+      `Cannot reach the Liara API (${pre.message}). Nothing was recorded or created.\n` +
+        'This process needs a direct route to api.liara.ir: `curl https://api.liara.ir/v1/me` must print 401 from the same terminal/app.',
+    );
+    process.exit(3);
+  }
+  if (pre.status === 401 || pre.status === 403) {
+    console.error(`Liara rejected the token (${pre.status}). Check LIARA_API_TOKEN (and LIARA_TEAM_ID) in .env. Nothing was recorded.`);
+    process.exit(2);
+  }
+
   const rec = new Recorder(client, path.join(ROOT_DIR, 'fixtures/liara'));
   const facts = newFacts(cfg.liara.demoAppName ?? '');
   const t0 = Date.now();
@@ -70,6 +85,7 @@ async function main() {
 
   // 3–4. Projects; reuse DEMO_APP_NAME or create a probe app
   const projects = await rec.call('03-projects', 'List apps', { path: '/v1/projects' });
+  if (!projects?.ok) return fatal('Could not list apps, so nothing will be created. Re-run when GET /v1/projects works.', rec, facts);
   const list: AnyJson[] = (projects?.body as AnyJson)?.projects ?? [];
   let name = cfg.liara.demoAppName ?? '';
   if (!name || !list.some((p) => p.project_id === name)) {
