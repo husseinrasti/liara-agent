@@ -9,12 +9,12 @@ import { verifyAppHealthy } from './checks';
 const ENV_KEY = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const envKey = z.string().regex(ENV_KEY, 'env names: letters, digits, underscore; not starting with a digit');
 
-// Keys of `set` are validated in a refinement (record key patterns become JSON Schema
-// `propertyNames`, which OpenAI structured tools do not support).
+// `set` is an open object (catchall) with keys validated in a refinement: z.record emits JSON
+// Schema `propertyNames`, which OpenAI tool schemas do not support.
 const input = z
   .object({
     appName: appNameSchema,
-    set: z.record(z.string(), z.string()).optional().describe('Variables to add/overwrite, e.g. {"API_KEY":"…"}. Never invent secret values: ask the user.'),
+    set: z.object({}).catchall(z.string()).optional().describe('Variables to add/overwrite, e.g. {"API_KEY":"…"}. Never invent secret values: ask the user.'),
     unset: z.array(envKey).optional().describe('Variable names to remove'),
   })
   .refine((v) => Object.keys(v.set ?? {}).every((k) => ENV_KEY.test(k)), 'env names: letters, digits, underscore; not starting with a digit')

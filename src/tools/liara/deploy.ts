@@ -117,7 +117,8 @@ export const deployReleaseTool = defineTool({
     waitForReady: z.boolean().default(true),
     message: z.string().max(200).optional(),
     platformConfig: z
-      .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
+      .object({})
+      .catchall(z.union([z.string(), z.number(), z.boolean()]))
       .optional()
       .describe('Runtime version as in liara.json, e.g. {"version":"22"} (node/next), {"pythonVersion":"3.12"}, {"phpVersion":"8.3"}'),
   }),

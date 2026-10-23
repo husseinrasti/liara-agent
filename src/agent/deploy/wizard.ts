@@ -29,7 +29,7 @@ export const DeployProjectInputSchema = z.object({
   port: z.number().int().min(1).max(65_535).optional().describe('Defaults to the detected port'),
   planID: z.string().optional().describe('Required when the app does not exist yet (use recommend_plan)'),
   bundlePlanID: z.string().optional(),
-  envs: z.record(z.string(), z.string()).optional().describe('Env vars with values the USER provided; never invent secrets'),
+  envs: z.object({}).catchall(z.string()).optional().describe('Env vars with values the USER provided; never invent secrets'),
 });
 export type DeployProjectInput = z.infer<typeof DeployProjectInputSchema>;
 
