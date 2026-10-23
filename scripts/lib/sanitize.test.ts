@@ -29,4 +29,13 @@ describe('sanitize', () => {
   it('scrubs bearer tokens in free text', () => {
     expect(sanitizeString('Authorization: Bearer abc.def.ghi')).toBe('Authorization: Bearer <token>');
   });
+
+  it('replaces account balances (real billing shape) with sample numbers', () => {
+    const out = sanitize({ user: { balance: 0 }, team: { balance: 3757112.3, minCreditAmount: 20000 }, remainingFreeCredit: 5000, facts: { balance: { source: 'billing', value: 3757112.3 } } }) as any;
+    expect(out.team.balance).toBe(1_000_000);
+    expect(out.user.balance).toBe(1_000_000);
+    expect(out.team.minCreditAmount).toBe(20000);
+    expect(out.remainingFreeCredit).toBe(0);
+    expect(out.facts.balance.value).toBe(1_000_000);
+  });
 });

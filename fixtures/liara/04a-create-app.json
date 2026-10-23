@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/projects",
+    "body": {
+      "name": "liara-agent-probe-psow",
+      "planID": "small-g2",
+      "platform": "node",
+      "bundlePlanID": "basic"
+    }
+  },
+  "status": 400,
+  "durationMs": 110,
+  "body": {
+    "statusCode": 400,
+    "error": "Bad Request",
+    "message": "g2_plan_unavailable",
+    "data": null
+  }
+}

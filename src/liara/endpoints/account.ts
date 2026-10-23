@@ -27,7 +27,8 @@ export type Balance =
 export async function getBalance(c: LiaraClient): Promise<Balance> {
   try {
     const billing = await c.request(BillingSchema, { path: '/v1/billing' });
-    const amount = billing.user?.balance;
+    // Team mode (teamID): the team pays and user.balance is 0 [probe].
+    const amount = c.teamId ? (billing.team?.balance ?? billing.user?.balance) : (billing.user?.balance ?? billing.team?.balance);
     if (typeof amount === 'number') return { known: true, amountIRT: amount, source: 'billing' };
   } catch {
     // fall through to /v1/me (team mode)

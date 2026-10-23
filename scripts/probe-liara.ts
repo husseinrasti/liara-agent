@@ -80,8 +80,10 @@ async function main() {
   const billing = await rec.call('02a-billing', 'Billing', { path: '/v1/billing' });
   await rec.call('02b-me-subscription', 'Subscription', { path: '/v1/me/subscription' });
   await rec.call('02c-me-free-credit', 'Free credit', { path: '/v1/me/free-credit' });
-  const bal = (billing?.body as AnyJson)?.user?.balance ?? meBody?.team?.balance;
-  facts.balance = typeof bal === 'number' ? { source: billing?.ok ? 'GET /v1/billing → user.balance' : 'GET /v1/me → team.balance', value: bal } : { source: 'not found', value: null };
+  const billingBody = billing?.body as AnyJson;
+  const teamBal = cfg.liara.teamId ? billingBody?.team?.balance : undefined;
+  const bal = teamBal ?? billingBody?.user?.balance ?? meBody?.team?.balance;
+  facts.balance = typeof bal === 'number' ? { source: teamBal !== undefined ? 'GET /v1/billing → team.balance' : billing?.ok ? 'GET /v1/billing → user.balance' : 'GET /v1/me → team.balance', value: bal } : { source: 'not found', value: null };
 
   // 3–4. Projects; reuse DEMO_APP_NAME or create a probe app
   const projects = await rec.call('03-projects', 'List apps', { path: '/v1/projects' });
@@ -216,6 +218,18 @@ async function createApp(rec: Recorder, facts: ProbeFacts, name: string, planOve
   const planID = planOverride ?? plan?.id ?? 'free';
   const bundlePlanID = bundleOverride ?? (plan ? cheapestBundle(plan)?.id : undefined) ?? 'free';
   const body: Record<string, unknown> = { name, planID, platform: 'node', bundlePlanID };
+  // g2 plans are created inside a private network, else Liara answers g2_plan_unavailable (liara-cli app:create).
+  if (planID !== 'free') {
+    const nets = await rec.call('04-networks', 'List networks', { path: '/v1/networks' });
+    let network = ((nets?.body as AnyJson)?.networks ?? [])[0];
+    if (nets?.ok && !network) {
+      await rec.call('04-network-create', 'Create network', { method: 'POST', path: '/v1/networks', body: { networkName: 'liara-agent' } });
+      const again = await rec.call('04-networks-after-create', 'List networks', { path: '/v1/networks' });
+      network = ((again?.body as AnyJson)?.networks ?? []).find((n: AnyJson) => n.name === 'liara-agent');
+    }
+    if (network?._id) body.network = network._id;
+    facts.network = network ? { name: network.name, created: !((nets?.body as AnyJson)?.networks ?? []).length } : null;
+  }
   const res = await rec.call('04a-create-app', `Create app (${planID})`, { method: 'POST', path: '/v1/projects', body });
   facts.createAttempts.push({ body, status: res?.status ?? null, message: (res?.body as AnyJson)?.message });
   if (res?.ok) {

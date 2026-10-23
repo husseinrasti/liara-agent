@@ -15,9 +15,10 @@ the probe before PRD-01 is accepted.
 
 | Topic | Decision | Where in code |
 |---|---|---|
-| Plan catalogue | `GET /v1/me` → `plans.projects[planID] = {available, region, RAM.amount (GB), CPU.amount, volume (GB), price (Toman/**hour**), storageClass}`; monthly = price × 720. Current plans: `free` or ids containing `g2`, region `iran`. **[cli]** | `src/liara/plans.ts` |
-| Feature bundles | `plans.projectBundlePlans[planID][free\|standard\|pro] = {available, displayPrice (Toman/month), maxLogsRetention (days)}`. `POST /v1/projects` needs `bundlePlanID`; free plan → only `free` bundle. **[cli]** | `plans.ts`, `create_app` |
-| Balance | `GET /v1/billing` → `user.balance` (Toman); team mode: `/v1/me` → `team.balance`. **[spec]** | `endpoints/account.ts` |
+| Plan catalogue | `GET /v1/me` → `plans.projects[planID] = {available, region, RAM.amount (GB), CPU.amount, volume (GB), price (Toman/**hour**), displayPrice (Toman/**month**), storageClass, …}`. Monthly = `displayPrice` (fallback price × 720). On the probed account only g2 plans are purchasable (`small-g2` 475 000/month … `pro-max-g2`); `free` and `mini-g2` have `available: false`; ids without `-g2` are legacy. **[probe][cli]** | `src/liara/plans.ts` |
+| Feature bundles | `plans.projectBundlePlans[planID][free\|basic\|standard\|pro] = {available, price, displayPrice (Toman/month), maxLogsRetention (days), rollback, zeroDowntime, …}`. On g2 plans `free` is unavailable; `basic` is the cheapest (small-g2: 275 000/month, 7-day logs). `POST /v1/projects` needs `bundlePlanID`. **[probe]** | `plans.ts`, `create_app` |
+| Balance | `GET /v1/billing` → `{user:{balance,…}, team:{balance,…}}`; with `teamID` the money is in `team.balance` and `user.balance` is 0. Also `GET /v1/me/subscription` → `{currentSubscriptionPlan}`, `GET /v1/me/free-credit` → `{remainingFreeCredit}`. **[probe]** | `endpoints/account.ts` |
+| Create app | `POST /v1/projects {name, planID, platform, bundlePlanID, network}`; `network` is a private network `_id` from `GET /v1/networks` → `{networks:[{_id,name}]}` (create one with `POST /v1/networks {networkName}`). Without it a g2 plan fails with 400 `g2_plan_unavailable` (probe 04a). liara-cli `app:create` always sends a network. `GET /v1/projects` items carry `network:{_id,name}`. **[probe][cli]** | `endpoints/networks.ts`, `create_app`, `deploy_project` |
 | Logs | New infrastructure: `GET /v2/projects/{app}/logs?start=<unix s>&direction=forward\|backward[&releaseId=]` → `{data:[{metaData:{releaseId}, values:[[tsNs, '{"_entry":…,"type":"stdout\|stderr"}']]}]}`. Old infra only `GET /v1/projects/{app}/logs?since=`. We call v2 (backward = newest first) and fall back to v1 on 400/404. **[cli]** | `endpoints/logs.ts` |
 | Log retention | `start` older than `maxLogsRetention` days of the app's bundle is rejected. **[cli]** | — |
 | Events | `GET /v1/projects/{app}/events?start=&end=` (unix seconds per spec example) → Loki-like streams; row layout to confirm. **[spec]** | `normalize.ts` |
@@ -39,4 +40,6 @@ the probe before PRD-01 is accepted.
 - `api.liara.ir` / `*.liara.run` resolve to Iranian IPs (185.208.181.x). From a non-Iranian egress
   (e.g. a VPN exit abroad) TCP connections time out; run the probe/acceptance with a direct route
   to Liara (split-tunnel `*.liara.ir`, `*.liara.run`). developers.liara.ir is reachable from anywhere.
+- 2026-10-23: the first probe run (from the user's terminal; Claude's processes still had no route)
+  recorded 01–03 and stopped at create app (`g2_plan_unavailable`, fixed by sending `network`).
 - `npm run mcp` prints npm's banner on stdout; MCP hosts must use `npm run --silent mcp` or `npx tsx src/mcp/server.ts`.

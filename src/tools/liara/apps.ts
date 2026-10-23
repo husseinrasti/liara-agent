@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { createApp, deleteApp, getApp, listApps, resizeApp, restartApp, scaleApp } from '../../liara/endpoints/apps';
+import { listNetworks, resolveNetwork } from '../../liara/endpoints/networks';
 import { getPlans } from '../../liara/endpoints/account';
 import { LiaraApiError } from '../../liara/errors';
 import { cheapestBundle, monthlyTotalIRT, type Plan } from '../../liara/plans';
@@ -93,12 +94,12 @@ export const getAppTool = defineTool({
 export const createAppTool = defineTool({
   name: 'create_app',
   title: 'Create app',
-  description: 'Create a new empty Liara app with a platform and plan. Costs money from the moment it exists (hourly billing). Does not deploy code; follow with build_source_archive → upload_source → deploy_release.',
+  description: 'Create a new empty Liara app with a platform and plan, inside a private network (the first existing one, or a new "liara-agent" network). Costs money from the moment it exists (hourly billing). Does not deploy code; follow with build_source_archive → upload_source → deploy_release.',
   input: z.object({
     appName: z.string().regex(/^[a-z][a-z0-9-]{2,30}$/, '3–31 chars: lowercase letters, digits, dashes; starts with a letter'),
     platform: platformSchema,
     planID: z.string().min(1).describe('Plan id from get_account.plansAvailable'),
-    bundlePlanID: z.string().optional().describe('Feature bundle: free | standard | pro. Default: cheapest available for the plan'),
+    bundlePlanID: z.string().optional().describe('Feature bundle: basic | standard | pro (free only on the free plan). Default: cheapest available for the plan'),
   }),
   risk: 1,
   category: 'deploy',
@@ -107,8 +108,9 @@ export const createAppTool = defineTool({
     const plan = await planInfo(ctx, i.planID);
     const bundleId = i.bundlePlanID ?? (plan ? cheapestBundle(plan)?.id : undefined);
     const total = plan ? monthlyTotalIRT(plan, bundleId) : null;
+    const network = (await listNetworks(ctx.liara).catch(() => []))[0];
     return {
-      why: `یک سرویس تازه به نام ${i.appName} با پلن ${planText(plan, i.planID)} ساخته می‌شود تا کد شما روی آن اجرا شود.`,
+      why: `یک سرویس تازه به نام ${i.appName} با پلن ${planText(plan, i.planID)} ساخته می‌شود تا کد شما روی آن اجرا شود${network ? ` (داخل شبکه‌ی خصوصی ${network.name})` : '؛ یک شبکه‌ی خصوصی هم برایش ساخته می‌شود'}.`,
       reversible: true,
       costNote: plan
         ? `هزینه‌ی تقریبی: ماهانه ${formatIRT(total)} (منابع ساعتی ${formatIRT(plan.hourlyPriceIRT)}${bundleId ? `، بسته‌ی امکانات ${bundleId}` : ''}).`
@@ -118,8 +120,13 @@ export const createAppTool = defineTool({
   run: async (i, ctx) => {
     const plan = await planInfo(ctx, i.planID);
     const bundlePlanID = i.bundlePlanID ?? (plan ? cheapestBundle(plan)?.id : undefined) ?? 'free';
-    await createApp(ctx.liara, { name: i.appName, planID: i.planID, platform: i.platform, bundlePlanID });
-    return ok({ appName: i.appName, platform: i.platform, planID: i.planID, bundlePlanID, url: appUrlFor(ctx, i.appName) }, `سرویس ${i.appName} ساخته شد.`);
+    // g2 plans need a private network (liara-cli does the same).
+    const network = i.planID === 'free' ? null : await resolveNetwork(ctx.liara);
+    await createApp(ctx.liara, { name: i.appName, planID: i.planID, platform: i.platform, bundlePlanID, ...(network ? { network: network._id } : {}) });
+    return ok(
+      { appName: i.appName, platform: i.platform, planID: i.planID, bundlePlanID, network: network?.name ?? null, url: appUrlFor(ctx, i.appName) },
+      `سرویس ${i.appName} ساخته شد${network?.created ? ` (شبکه‌ی خصوصی ${network.name} هم ساخته شد)` : ''}.`,
+    );
   },
   verify: async (i, _before, ctx) => {
     const app = await getApp(ctx.liara, i.appName);

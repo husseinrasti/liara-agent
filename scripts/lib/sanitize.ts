@@ -31,6 +31,9 @@ const PLACEHOLDER_BY_KEY: Record<string, string> = {
   user_id: '<user-id>',
 };
 
+/** Money amounts are personal: numbers under these keys become a fixed sample value. */
+const SAMPLE_NUMBER_BY_KEY: Record<string, number> = { balance: 1_000_000, remainingFreeCredit: 0 };
+
 /** Keys whose whole value (any type) is replaced. */
 const DROP_KEYS = new Set(['contactInfo', 'utm']);
 
@@ -63,6 +66,10 @@ export function sanitize(value: unknown, parentKey = ''): unknown {
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
       if (DROP_KEYS.has(k)) {
         out[k] = v === null ? null : '<removed>';
+      } else if (k in SAMPLE_NUMBER_BY_KEY && typeof v === 'number') {
+        out[k] = SAMPLE_NUMBER_BY_KEY[k];
+      } else if (parentKey === 'balance' && k === 'value' && typeof v === 'number') {
+        out[k] = SAMPLE_NUMBER_BY_KEY.balance;
       } else if (k in PLACEHOLDER_BY_KEY && v !== null && v !== undefined && v !== '') {
         out[k] = typeof v === 'string' ? PLACEHOLDER_BY_KEY[k] : '<redacted>';
       } else if (k === '_id' && USER_CONTAINERS.has(parentKey)) {

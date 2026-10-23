@@ -180,8 +180,15 @@ export type DomainCheck = z.infer<typeof DomainCheckSchema>;
 
 export const BillingSchema = z.looseObject({
   user: z.looseObject({ balance: optNum, accountType: optStr, minCreditAmount: optNum }).nullish(),
+  /** present in team mode (teamID query); the money of a team account lives here, user.balance is 0 [probe] */
+  team: z.looseObject({ balance: optNum, accountType: optStr, minCreditAmount: optNum }).nullish(),
 });
 export type Billing = z.infer<typeof BillingSchema>;
+
+/** GET /v1/networks — private networks; g2 (new infrastructure) apps must be created inside one [cli][probe]. */
+export const NetworksSchema = z.looseObject({
+  networks: z.array(z.looseObject({ _id: str, name: str })).nullish(),
+});
 
 export const MeSchema = z.looseObject({
   user: z.looseObject({ _id: optStr, isTeam: optBool }).nullish(),

@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/billing"
+  },
+  "status": 200,
+  "durationMs": 113,
+  "body": {
+    "user": {
+      "balance": 1000000,
+      "accountType": "REAL_PERSON",
+      "minCreditAmount": 20000,
+      "isManualMinCredit": false
+    },
+    "team": {
+      "balance": 1000000,
+      "accountType": "REAL_PERSON",
+      "minCreditAmount": 20000,
+      "isManualMinCredit": false
+    }
+  }
+}

@@ -25,6 +25,8 @@ export interface ProbeFacts {
   appCreated: boolean;
   createBody?: Record<string, unknown>;
   createAttempts: { body: Record<string, unknown>; status: number | null; message?: string }[];
+  /** private network the probe app was created in (g2 plans need one) */
+  network?: { name: string; created: boolean } | null;
   meTopKeys: string[];
   planFieldNames: string[];
   plans: Plan[];

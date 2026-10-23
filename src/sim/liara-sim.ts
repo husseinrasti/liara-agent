@@ -66,11 +66,21 @@ export function createLiaraSimulator(opts: { now?: () => number; seed?: boolean;
     if (method === 'GET' && p === '/v1/me') return json({ user: { _id: 'sim-user', fullname: 'کاربر آزمایشی', isTeam: false }, plans: SIM_PLANS });
     if (method === 'GET' && p === '/v1/billing') return json({ user: { balance: state.balance, accountType: 'personal' } });
     if (method === 'GET' && p === '/v1/projects') return json({ projects: [...state.apps.values()].map((a) => project(a, state)) });
+    if (method === 'GET' && p === '/v1/networks') return json({ networks: state.networks });
+    if (method === 'POST' && p === '/v1/networks') {
+      const name = (body as { networkName?: string }).networkName;
+      if (!name) return json({ statusCode: 400, message: 'networkName is required' }, 400);
+      if (state.networks.some((n) => n.name === name)) return json({ statusCode: 409, message: 'Network already exists' }, 409);
+      state.networks.push({ _id: `net${state.networks.length + 1}`, name });
+      return json({}, 201);
+    }
     if (method === 'POST' && p === '/v1/projects') {
-      const b = body as { name?: string; planID?: string; platform?: string; bundlePlanID?: string };
+      const b = body as { name?: string; planID?: string; platform?: string; bundlePlanID?: string; network?: string };
       if (!b.name || !/^[a-z][a-z0-9-]{2,30}$/.test(b.name)) return json({ statusCode: 400, message: 'Invalid name' }, 400);
       if (state.apps.has(b.name)) return json({ statusCode: 409, message: 'Project already exists' }, 409);
       if (!b.planID || !planSpec(b.planID)) return json({ statusCode: 400, message: 'Invalid planID' }, 400);
+      // Real API: g2 plans without a private network → 400 g2_plan_unavailable [probe].
+      if (b.planID.includes('g2') && !state.networks.some((n) => n._id === b.network)) return json({ statusCode: 400, error: 'Bad Request', message: 'g2_plan_unavailable', data: null }, 400);
       state.createApp({ name: b.name, planID: b.planID, platform: b.platform ?? 'node', bundlePlanID: b.bundlePlanID }, now());
       return json({});
     }

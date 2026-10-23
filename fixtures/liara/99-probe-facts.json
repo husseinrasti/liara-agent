@@ -1,0 +1,1071 @@
+{
+  "ranAt": "2026-10-23T09:59:12.637Z",
+  "appName": "",
+  "appCreated": false,
+  "createAttempts": [
+    {
+      "body": {
+        "name": "liara-agent-probe-psow",
+        "planID": "small-g2",
+        "platform": "node",
+        "bundlePlanID": "basic"
+      },
+      "status": 400,
+      "message": "g2_plan_unavailable"
+    }
+  ],
+  "meTopKeys": [
+    "user",
+    "team",
+    "databaseVersions",
+    "defaultDatabaseVersions",
+    "featureFlags",
+    "plans"
+  ],
+  "planFieldNames": [
+    "available",
+    "price",
+    "volume",
+    "RAM",
+    "CPU",
+    "sourceCodeSpace"
+  ],
+  "plans": [
+    {
+      "id": "free",
+      "label": "free (128MB RAM, 0.125 CPU)",
+      "ramMB": 128,
+      "cpu": 0.125,
+      "diskGB": 0,
+      "hourlyPriceIRT": 0,
+      "monthlyEstimateIRT": 0,
+      "available": false,
+      "region": "iran",
+      "isFree": true,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "standard",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "pro",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        }
+      ]
+    },
+    {
+      "id": "database-control-panel",
+      "label": "database-control-panel (1GB RAM, 0.5 CPU)",
+      "ramMB": 1024,
+      "cpu": 0.5,
+      "diskGB": 0,
+      "hourlyPriceIRT": 0,
+      "monthlyEstimateIRT": 0,
+      "available": false,
+      "isFree": true,
+      "bundles": []
+    },
+    {
+      "id": "shared",
+      "label": "shared (512MB RAM, 1 CPU)",
+      "ramMB": 512,
+      "cpu": 1,
+      "diskGB": 1,
+      "hourlyPriceIRT": 50,
+      "monthlyEstimateIRT": 36000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "512mb",
+      "label": "512mb (512MB RAM, 1 CPU)",
+      "ramMB": 512,
+      "cpu": 1,
+      "diskGB": 5,
+      "hourlyPriceIRT": 100,
+      "monthlyEstimateIRT": 72000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "nano",
+      "label": "nano (512MB RAM, 1 CPU)",
+      "ramMB": 512,
+      "cpu": 1,
+      "diskGB": 2,
+      "hourlyPriceIRT": 100,
+      "monthlyEstimateIRT": 72000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "small",
+      "label": "small (512MB RAM, 0.25 CPU)",
+      "ramMB": 512,
+      "cpu": 0.25,
+      "diskGB": 2.5,
+      "hourlyPriceIRT": 100,
+      "monthlyEstimateIRT": 72000,
+      "available": false,
+      "region": "germany",
+      "storageClass": "NVMe",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "1g",
+      "label": "1g (1GB RAM, 1 CPU)",
+      "ramMB": 1024,
+      "cpu": 1,
+      "diskGB": 10,
+      "hourlyPriceIRT": 200,
+      "monthlyEstimateIRT": 144000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "micro",
+      "label": "micro (1GB RAM, 1 CPU)",
+      "ramMB": 1024,
+      "cpu": 1,
+      "diskGB": 5,
+      "hourlyPriceIRT": 200,
+      "monthlyEstimateIRT": 144000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "medium",
+      "label": "medium (1GB RAM, 0.5 CPU)",
+      "ramMB": 1024,
+      "cpu": 0.5,
+      "diskGB": 5,
+      "hourlyPriceIRT": 200,
+      "monthlyEstimateIRT": 144000,
+      "available": false,
+      "region": "germany",
+      "storageClass": "NVMe",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "mini-g2",
+      "label": "mini-g2 (256MB RAM, 0.25 CPU)",
+      "ramMB": 256,
+      "cpu": 0.25,
+      "diskGB": 2.5,
+      "hourlyPriceIRT": 381.94,
+      "monthlyEstimateIRT": 274997,
+      "available": false,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 175000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 275000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 475000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "2g",
+      "label": "2g (2GB RAM, 2 CPU)",
+      "ramMB": 2048,
+      "cpu": 2,
+      "diskGB": 20,
+      "hourlyPriceIRT": 400,
+      "monthlyEstimateIRT": 288000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "standard-1x",
+      "label": "standard-1x (2GB RAM, 2 CPU)",
+      "ramMB": 2048,
+      "cpu": 2,
+      "diskGB": 10,
+      "hourlyPriceIRT": 400,
+      "monthlyEstimateIRT": 288000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "standard",
+      "label": "standard (2GB RAM, 1 CPU)",
+      "ramMB": 2048,
+      "cpu": 1,
+      "diskGB": 10,
+      "hourlyPriceIRT": 400,
+      "monthlyEstimateIRT": 288000,
+      "available": false,
+      "region": "germany",
+      "storageClass": "NVMe",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "small-g2",
+      "label": "small-g2 (512MB RAM, 0.5 CPU)",
+      "ramMB": 512,
+      "cpu": 0.5,
+      "diskGB": 5,
+      "hourlyPriceIRT": 659.72,
+      "monthlyEstimateIRT": 474998,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 275000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 475000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 825000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "ir-mini",
+      "label": "ir-mini (256MB RAM, 0.25 CPU)",
+      "ramMB": 256,
+      "cpu": 0.25,
+      "diskGB": 2.5,
+      "hourlyPriceIRT": 763.88,
+      "monthlyEstimateIRT": 549994,
+      "available": false,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "4g",
+      "label": "4g (4GB RAM, 2 CPU)",
+      "ramMB": 4096,
+      "cpu": 2,
+      "diskGB": 40,
+      "hourlyPriceIRT": 800,
+      "monthlyEstimateIRT": 576000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "standard-2x",
+      "label": "standard-2x (4GB RAM, 2 CPU)",
+      "ramMB": 4096,
+      "cpu": 2,
+      "diskGB": 20,
+      "hourlyPriceIRT": 800,
+      "monthlyEstimateIRT": 576000,
+      "available": false,
+      "region": "germany",
+      "storageClass": "NVMe",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "medium-g2",
+      "label": "medium-g2 (1GB RAM, 1 CPU)",
+      "ramMB": 1024,
+      "cpu": 1,
+      "diskGB": 10,
+      "hourlyPriceIRT": 1145.83,
+      "monthlyEstimateIRT": 824998,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 475000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 825000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 1475000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "performance-1x",
+      "label": "performance-1x (6GB RAM, 4 CPU)",
+      "ramMB": 6144,
+      "cpu": 4,
+      "diskGB": 40,
+      "hourlyPriceIRT": 1200,
+      "monthlyEstimateIRT": 864000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "large",
+      "label": "large (6GB RAM, 3 CPU)",
+      "ramMB": 6144,
+      "cpu": 3,
+      "diskGB": 30,
+      "hourlyPriceIRT": 1200,
+      "monthlyEstimateIRT": 864000,
+      "available": false,
+      "storageClass": "NVMe",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "ir-small",
+      "label": "ir-small (512MB RAM, 0.5 CPU)",
+      "ramMB": 512,
+      "cpu": 0.5,
+      "diskGB": 5,
+      "hourlyPriceIRT": 1319.44,
+      "monthlyEstimateIRT": 949997,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "8g",
+      "label": "8g (8GB RAM, 4 CPU)",
+      "ramMB": 8192,
+      "cpu": 4,
+      "diskGB": 80,
+      "hourlyPriceIRT": 1600,
+      "monthlyEstimateIRT": 1152000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "performance-2x",
+      "label": "performance-2x (8GB RAM, 4 CPU)",
+      "ramMB": 8192,
+      "cpu": 4,
+      "diskGB": 60,
+      "hourlyPriceIRT": 1600,
+      "monthlyEstimateIRT": 1152000,
+      "available": false,
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "large-2x",
+      "label": "large-2x (8GB RAM, 4 CPU)",
+      "ramMB": 8192,
+      "cpu": 4,
+      "diskGB": 40,
+      "hourlyPriceIRT": 1600,
+      "monthlyEstimateIRT": 1152000,
+      "available": false,
+      "region": "germany",
+      "storageClass": "NVMe",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "standard-base-g2",
+      "label": "standard-base-g2 (2GB RAM, 1 CPU)",
+      "ramMB": 2048,
+      "cpu": 1,
+      "diskGB": 20,
+      "hourlyPriceIRT": 2048.61,
+      "monthlyEstimateIRT": 1474999,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 825000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 1475000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 2650000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "ir-medium",
+      "label": "ir-medium (1GB RAM, 1 CPU)",
+      "ramMB": 1024,
+      "cpu": 1,
+      "diskGB": 10,
+      "hourlyPriceIRT": 2291.66,
+      "monthlyEstimateIRT": 1649995,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "large-3x",
+      "label": "large-3x (16GB RAM, 8 CPU)",
+      "ramMB": 16384,
+      "cpu": 8,
+      "diskGB": 80,
+      "hourlyPriceIRT": 3200,
+      "monthlyEstimateIRT": 2304000,
+      "available": false,
+      "region": "germany",
+      "storageClass": "NVMe",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "standard-plus-g2",
+      "label": "standard-plus-g2 (4GB RAM, 2 CPU)",
+      "ramMB": 4096,
+      "cpu": 2,
+      "diskGB": 40,
+      "hourlyPriceIRT": 3680.55,
+      "monthlyEstimateIRT": 2649996,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 1475000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 2650000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 4600000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "ir-standard",
+      "label": "ir-standard (2GB RAM, 2 CPU)",
+      "ramMB": 2048,
+      "cpu": 2,
+      "diskGB": 20,
+      "hourlyPriceIRT": 4097.22,
+      "monthlyEstimateIRT": 2949998,
+      "available": false,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "standard-base",
+      "label": "standard-base (2GB RAM, 1 CPU)",
+      "ramMB": 2048,
+      "cpu": 1,
+      "diskGB": 20,
+      "hourlyPriceIRT": 4097.22,
+      "monthlyEstimateIRT": 2949998,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "pro-g2",
+      "label": "pro-g2 (8GB RAM, 4 CPU)",
+      "ramMB": 8192,
+      "cpu": 4,
+      "diskGB": 80,
+      "hourlyPriceIRT": 6388.88,
+      "monthlyEstimateIRT": 4599994,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 2650000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 4600000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 8000000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "ir-large",
+      "label": "ir-large (6GB RAM, 6 CPU)",
+      "ramMB": 6144,
+      "cpu": 6,
+      "diskGB": 60,
+      "hourlyPriceIRT": 7222.22,
+      "monthlyEstimateIRT": 5199998,
+      "available": false,
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "ir-standard-2x",
+      "label": "ir-standard-2x (4GB RAM, 4 CPU)",
+      "ramMB": 4096,
+      "cpu": 4,
+      "diskGB": 40,
+      "hourlyPriceIRT": 7361.11,
+      "monthlyEstimateIRT": 5299999,
+      "available": false,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "standard-plus",
+      "label": "standard-plus (4GB RAM, 2 CPU)",
+      "ramMB": 4096,
+      "cpu": 2,
+      "diskGB": 40,
+      "hourlyPriceIRT": 7361.11,
+      "monthlyEstimateIRT": 5299999,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "pro-plus-g2",
+      "label": "pro-plus-g2 (16GB RAM, 8 CPU)",
+      "ramMB": 16384,
+      "cpu": 8,
+      "diskGB": 160,
+      "hourlyPriceIRT": 11111.11,
+      "monthlyEstimateIRT": 7999999,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 4600000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 8000000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 14000000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "ir-large-2x",
+      "label": "ir-large-2x (8GB RAM, 8 CPU)",
+      "ramMB": 8192,
+      "cpu": 8,
+      "diskGB": 80,
+      "hourlyPriceIRT": 12777.77,
+      "monthlyEstimateIRT": 9199994,
+      "available": false,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "pro",
+      "label": "pro (8GB RAM, 4 CPU)",
+      "ramMB": 8192,
+      "cpu": 4,
+      "diskGB": 80,
+      "hourlyPriceIRT": 12777.77,
+      "monthlyEstimateIRT": 9199994,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "pro-max-g2",
+      "label": "pro-max-g2 (32GB RAM, 16 CPU)",
+      "ramMB": 32768,
+      "cpu": 16,
+      "diskGB": 320,
+      "hourlyPriceIRT": 19444.44,
+      "monthlyEstimateIRT": 13999997,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 8000000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 14000000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 24600000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "ir-large-3x",
+      "label": "ir-large-3x (16GB RAM, 16 CPU)",
+      "ramMB": 16384,
+      "cpu": 16,
+      "diskGB": 160,
+      "hourlyPriceIRT": 22222.22,
+      "monthlyEstimateIRT": 15999998,
+      "available": false,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "pro-plus",
+      "label": "pro-plus (16GB RAM, 8 CPU)",
+      "ramMB": 16384,
+      "cpu": 8,
+      "diskGB": 160,
+      "hourlyPriceIRT": 22222.22,
+      "monthlyEstimateIRT": 15999998,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    },
+    {
+      "id": "express-g2",
+      "label": "express-g2 (64GB RAM, 32 CPU)",
+      "ramMB": 65536,
+      "cpu": 32,
+      "diskGB": 640,
+      "hourlyPriceIRT": 34166.66,
+      "monthlyEstimateIRT": 24599995,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": [
+        {
+          "id": "free",
+          "available": false,
+          "monthlyIRT": 0,
+          "maxLogsRetentionDays": 0.05
+        },
+        {
+          "id": "basic",
+          "available": true,
+          "monthlyIRT": 14000000,
+          "maxLogsRetentionDays": 7
+        },
+        {
+          "id": "standard",
+          "available": true,
+          "monthlyIRT": 24600000,
+          "maxLogsRetentionDays": 30
+        },
+        {
+          "id": "pro",
+          "available": true,
+          "monthlyIRT": 43000000,
+          "maxLogsRetentionDays": 60
+        }
+      ]
+    },
+    {
+      "id": "pro-max",
+      "label": "pro-max (32GB RAM, 16 CPU)",
+      "ramMB": 32768,
+      "cpu": 16,
+      "diskGB": 320,
+      "hourlyPriceIRT": 38888.88,
+      "monthlyEstimateIRT": 27999994,
+      "available": true,
+      "region": "iran",
+      "storageClass": "SSD",
+      "isFree": false,
+      "bundles": []
+    }
+  ],
+  "balance": {
+    "source": "GET /v1/billing → user.balance",
+    "value": 1000000
+  },
+  "projectDetailKeys": [],
+  "logs": {},
+  "events": {},
+  "metrics": {},
+  "release": {
+    "states": []
+  },
+  "buildLogs": {},
+  "health": {
+    "url": "",
+    "status": null,
+    "latencyMs": null,
+    "attempts": 0
+  },
+  "envs": {
+    "semantics": "unknown",
+    "keysBefore": [],
+    "keysAfterA": [],
+    "keysAfterB": []
+  },
+  "restart": {
+    "status": null,
+    "appletStates": []
+  },
+  "rollback": {
+    "sourceReuseStatus": null,
+    "candidates": [],
+    "decision": ""
+  },
+  "domain": {
+    "createStatus": null,
+    "listStatus": null,
+    "checkStatus": null,
+    "deleteStatus": null
+  },
+  "errors": [
+    "Could not create the probe app. See the plan list above and re-run with --plan/--bundle."
+  ],
+  "bundlePlansSample": {
+    "g1": {
+      "default": {
+        "available": true,
+        "price": 0,
+        "displayHourlyPrice": 0,
+        "displayPrice": 0,
+        "availableBackupInterval": [
+          "daily",
+          "manual"
+        ],
+        "backupRetention": {
+          "manual": 3,
+          "daily": 7,
+          "weekly": 0,
+          "monthly": 0,
+          "hourly": 0
+        },
+        "buildTimeout": 60,
+        "maxLogsRetention": 7,
+        "maxReleaseRetention": 10,
+        "maxDestinationsBackup": 0,
+        "maxDomainsCount": "infinite",
+        "maxDeploymentCountInDay": "infinite",
+        "maxReportRetention": 7,
+        "maxFTPAccountsPerDisk": 10,
+        "maxDiskPerProject": 8,
+        "manualBackupRateLimit": 5,
+        "rollback": true,
+        "zeroDowntime": true,
+        "setDNS": false,
+        "setReadOnly": false,
+        "maxSourceSize": 256,
+        "germanyBuilder": true,
+        "vipBuilder": false,
+        "antiBoycott": false,
+        "freeSSL": true,
+        "backupSpace": 0,
+        "maxImageLayerSize": 500
+      }
+    },
+    "free": {
+      "free": {
+        "available": false,
+        "price": 0,
+        "displayHourlyPrice": 0,
+        "displayPrice": 0,
+        "availableBackupInterval": [],
+        "backupRetention": {
+          "manual": 0,
+          "daily": 0,
+          "weekly": 0,
+          "monthly": 0,
+          "hourly": 0
+        },
+        "buildTimeout": 5,
+        "maxLogsRetention": 0.05,
+        "maxReleaseRetention": 1,
+        "maxDestinationsBackup": 0,
+        "maxDomainsCount": 1,
+        "maxDeploymentCountInDay": 10,
+        "maxReportRetention": 0.05,
+        "maxFTPAccountsPerDisk": 1,
+        "maxDiskPerProject": 1,
+        "manualBackupRateLimit": 0,
+        "rollback": false,
+        "zeroDowntime": false,
+        "setDNS": false,
+        "setReadOnly": false,
+        "maxSourceSize": 128,
+        "germanyBuilder": false,
+        "vipBuilder": false,
+        "antiBoycott": false,
+        "freeSSL": true,
+        "backupSpace": 0
+      },
+      "basic": {
+        "available": false,
+        "price": 0,
+        "displayHourlyPrice": 0,
+        "displayPrice": 0,
+        "availableBackupInterval": [],
+        "backupRetention": {
+          "manual": 0,
+          "daily": 0,
+          "weekly": 0,
+          "monthly": 0,
+          "hourly": 0
+        },
+        "buildTimeout": 5,
+        "maxLogsRetention": 0.05,
+        "maxReleaseRetention": 1,
+        "maxDestinationsBackup": 0,
+        "maxDomainsCount": 1,
+        "maxDeploymentCountInDay": 10,
+        "maxReportRetention": 0.05,
+        "maxFTPAccountsPerDisk": 1,
+        "maxDiskPerProject": 1,
+        "manualBackupRateLimit": 0,
+        "rollback": false,
+        "zeroDowntime": false,
+        "setDNS": false,
+        "setReadOnly": false,
+        "maxSourceSize": 128,
+        "germanyBuilder": false,
+        "vipBuilder": false,
+        "antiBoycott": false,
+        "freeSSL": true,
+        "backupSpace": 0,
+        "maxImageLayerSize": 200
+      },
+      "standard": {
+        "available": false,
+        "price": 0,
+        "displayHourlyPrice": 0,
+        "displayPrice": 0,
+        "availableBackupInterval": [],
+        "backupRetention": {
+          "manual": 0,
+          "daily": 0,
+          "weekly": 0,
+          "monthly": 0,
+          "hourly": 0
+        },
+        "buildTimeout": 5,
+        "maxLogsRetention": 0.05,
+        "maxReleaseRetention": 1,
+        "maxDestinationsBackup": 0,
+        "maxDomainsCount": 1,
+        "maxDeploymentCountInDay": 10,
+        "maxReportRetention": 0.05,
+        "maxFTPAccountsPerDisk": 1,
+        "maxDiskPerProject": 1,
+        "manualBackupRateLimit": 0,
+        "rollback": false,
+        "zeroDowntime": false,
+        "setDNS": false,
+        "setReadOnly": false,
+        "maxSourceSize": 128,
+        "germanyBuilder": false,
+        "vipBuilder": false,
+        "antiBoycott": false,
+        "freeSSL": true,
+        "backupSpace": 0,
+        "maxImageLayerSize": 200
+      },
+      "pro": {
+        "available": false,
+        "price": 0,
+        "displayHourlyPrice": 0,
+        "displayPrice": 0,
+        "availableBackupInterval": [],
+        "backupRetention": {
+          "manual": 0,
+          "daily": 0,
+          "weekly": 0,
+          "monthly": 0,
+          "hourly": 0
+        },
+        "buildTimeout": 5,
+        "maxLogsRetention": 0.05,
+        "maxReleaseRetention": 1,
+        "maxDestinationsBackup": 0,
+        "maxDomainsCount": 1,
+        "maxDeploymentCountInDay": 10,
+        "maxReportRetention": 0.05,
+        "maxFTPAccountsPerDisk": 1,
+        "maxDiskPerProject": 1,
+        "manualBackupRateLimit": 0,
+        "rollback": false,
+        "zeroDowntime": false,
+        "setDNS": false,
+        "setReadOnly": false,
+        "maxSourceSize": 128,
+        "germanyBuilder": false,
+        "vipBuilder": false,
+        "antiBoycott": false,
+        "freeSSL": true,
+        "backupSpace": 0,
+        "maxImageLayerSize": 200
+      }
+    }
+  }
+}

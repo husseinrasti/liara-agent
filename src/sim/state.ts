@@ -53,20 +53,22 @@ export const SSL_ISSUE_MS = 20_000;
 export class SimState {
   readonly apps = new Map<string, SimApp>();
   readonly domains = new Map<string, SimDomain>();
+  /** private networks; g2 apps are created inside one */
+  readonly networks: { _id: string; name: string }[] = [{ _id: 'net1', name: 'my-network' }];
   readonly sources = new Map<string, { app: string; chaos?: ChaosMode; failLines?: string[]; requiredEnv?: string }>();
-  balance = 2_500_000;
+  balance = 6_000_000;
 
   constructor(readonly now: () => number = Date.now) {}
 
   seed(): this {
     const t = this.now();
-    this.createApp({ name: 'liara-agent-demo', planID: 'small-g2', platform: 'node', bundlePlanID: 'free' }, t - 3 * 86_400_000);
+    this.createApp({ name: 'liara-agent-demo', planID: 'small-g2', platform: 'node', bundlePlanID: 'basic' }, t - 3 * 86_400_000);
     this.setEnvsRaw('liara-agent-demo', [
       { key: 'NODE_ENV', value: 'production' },
       { key: 'PAYMENT_API_KEY', value: 'demo-key' },
     ]);
     this.seedRelease('liara-agent-demo', t - 2 * 86_400_000);
-    this.createApp({ name: 'my-blog', planID: 'small-g2', platform: 'static', bundlePlanID: 'free' }, t - 12 * 86_400_000);
+    this.createApp({ name: 'my-blog', planID: 'small-g2', platform: 'static', bundlePlanID: 'basic' }, t - 12 * 86_400_000);
     this.seedRelease('my-blog', t - 10 * 86_400_000, 80);
     return this;
   }

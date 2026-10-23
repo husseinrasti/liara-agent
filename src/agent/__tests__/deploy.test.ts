@@ -76,6 +76,7 @@ function deployRoutes(balance = 10_000_000) {
   const routes = {
     'GET /v1/me': { body: me },
     'GET /v1/billing': { body: { user: { balance } } },
+    'GET /v1/networks': { body: { networks: [{ _id: 'net1', name: 'my-network' }] } },
     'GET /v1/projects': () => ({ body: { projects: state.created ? [{ _id: 'p9', project_id: 'my-shop', type: 'node' }] : [] } }),
     'POST /v1/projects': () => ((state.created = true), { body: {} }),
     'GET /v1/projects/my-shop': () => ({ body: { project: { _id: 'p9', project_id: 'my-shop', type: 'node', scale: 1, planID: 'medium-g2', envs: state.envs } } }),
@@ -112,7 +113,7 @@ describe('deploy_project wizard', () => {
     const stages = events.filter((e) => e.type === 'deploy_progress').map((e) => `${(e as { stage: string }).stage}:${(e as { status: string }).status}`);
     expect(stages.filter((s) => s.endsWith(':done')).map((s) => s.split(':')[0])).toEqual(['analyze', 'create', 'envs', 'archive', 'upload', 'release', 'build', 'health']);
     expect(state.envs).toEqual([{ key: 'PAYMENT_API_KEY', value: 'demo-secret' }]);
-    expect(calls.find((c) => c.method === 'POST' && c.url.pathname === '/v1/projects')?.body).toMatchObject({ name: 'my-shop', planID: 'medium-g2', platform: 'node', bundlePlanID: 'free' });
+    expect(calls.find((c) => c.method === 'POST' && c.url.pathname === '/v1/projects')?.body).toMatchObject({ name: 'my-shop', planID: 'medium-g2', platform: 'node', bundlePlanID: 'free', network: 'net1' });
     expect(calls.find((c) => c.url.pathname === '/v2/projects/my-shop/releases')?.body).toMatchObject({ sourceID: 'src-1', port: 3000, type: 'node', platformConfig: { version: 22 } });
     expect(existsSync(path.join(dir, 'liara.json'))).toBe(true);
     expect(getMemoryKey(rt.deps.db, 'my-shop', 'watch')).toBe(true);

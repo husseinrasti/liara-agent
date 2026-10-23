@@ -68,7 +68,8 @@ export function parsePlan(id: string, raw: unknown, bundlesRaw?: unknown): Plan 
   const cpu = num(r.CPU ?? r.cpu) ?? 0;
   const diskGB = num(r.volume ?? r.disk ?? r.storage) ?? 0;
   const hourly = num(r.price ?? r.hourlyPrice);
-  const monthly = hourly === null ? null : Math.round(hourly * HOURS_PER_MONTH);
+  // displayPrice is the console's monthly price [probe]; hourly × 720 is the fallback.
+  const monthly = num(r.displayPrice) ?? (hourly === null ? null : Math.round(hourly * HOURS_PER_MONTH));
   const ramLabel = ramMB >= 1024 ? `${+(ramMB / 1024).toFixed(1)}GB` : `${ramMB}MB`;
   return {
     id,

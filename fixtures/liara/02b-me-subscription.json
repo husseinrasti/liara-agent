@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/me/subscription"
+  },
+  "status": 200,
+  "durationMs": 365,
+  "body": {
+    "currentSubscriptionPlan": {}
+  }
+}

@@ -11,6 +11,7 @@ import type { DeployStage } from '../../events';
 import { getBalance, getPlans } from '../../liara/endpoints/account';
 import { createApp, listApps } from '../../liara/endpoints/apps';
 import { deployRelease, MAX_SOURCE_BYTES, uploadSource } from '../../liara/endpoints/deploy';
+import { resolveNetwork } from '../../liara/endpoints/networks';
 import { updateEnvs } from '../../liara/endpoints/envs';
 import { cheapestBundle } from '../../liara/plans';
 import { appUrlFor, faNum, fail, formatIRT, limitation, ok } from '../../tools/helpers';
@@ -81,7 +82,8 @@ export async function deployProject(ctx: ToolContext, input: DeployProjectInput)
         );
       }
       const bundlePlanID = input.bundlePlanID ?? (plan ? cheapestBundle(plan)?.id : undefined) ?? 'free';
-      await createApp(ctx.liara, { name: input.appName, planID: input.planID, platform, bundlePlanID });
+      const network = input.planID === 'free' ? null : await resolveNetwork(ctx.liara);
+      await createApp(ctx.liara, { name: input.appName, planID: input.planID, platform, bundlePlanID, ...(network ? { network: network._id } : {}) });
     }
     stage('create', 'done', exists ? 'سرویس از قبل وجود داشت' : 'سرویس ساخته شد');
 
