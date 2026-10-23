@@ -53,6 +53,7 @@ const EnvSchema = z.object({
   DATABASE_PATH: z.preprocess(blankToUndefined, z.string().default('./data/agent.db')),
   WATCHER_ENABLED: bool(true),
   WATCHER_INTERVAL_SEC: z.preprocess(blankToUndefined, z.coerce.number().int().min(10).default(60)),
+  WATCHER_AUTO_DIAGNOSE: bool(false),
   APP_PUBLIC_URL_SUFFIX: z.preprocess(blankToUndefined, z.string().default('.liara.run')),
   AUTO_APPROVE: bool(false),
   LOG_LEVEL: z.preprocess(
@@ -83,7 +84,7 @@ export interface AppConfig {
     openaiBaseUrl?: string;
   };
   databasePath: string;
-  watcher: { enabled: boolean; intervalSec: number };
+  watcher: { enabled: boolean; intervalSec: number; autoDiagnose?: boolean };
   autoApprove: boolean;
   logLevel: string;
 }
@@ -135,7 +136,7 @@ export function getConfig(): AppConfig {
       openaiBaseUrl: env.OPENAI_BASE_URL,
     },
     databasePath: path.resolve(ROOT_DIR, env.DATABASE_PATH),
-    watcher: { enabled: env.WATCHER_ENABLED, intervalSec: env.WATCHER_INTERVAL_SEC },
+    watcher: { enabled: env.WATCHER_ENABLED, intervalSec: env.WATCHER_INTERVAL_SEC, autoDiagnose: env.WATCHER_AUTO_DIAGNOSE },
     autoApprove: env.AUTO_APPROVE,
     logLevel: env.LOG_LEVEL,
   };
