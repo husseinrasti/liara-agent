@@ -1,0 +1,6 @@
+{
+  "app": "liara-agent-ui",
+  "platform": "next",
+  "port": 3000,
+  "disks": [{ "name": "data", "mountTo": "/data" }]
+}

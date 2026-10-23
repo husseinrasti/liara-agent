@@ -4,7 +4,7 @@
 > developer's project with minimal questions, watches the app, diagnoses incidents (HTTP 500s, slowness, crashes,
 > OOM, failed builds) from Liara events, logs and metrics with ranked, evidence-backed causes, proposes one fix,
 > asks before anything risky, runs it, and **verifies** that it worked before saying "fixed". One tool registry
-> (35 tools over Liara's official API) powers both a Persian, RTL Next.js chat and an MCP server for Claude
+> (36 tools over Liara's official API) powers both a Persian, RTL Next.js chat and an MCP server for Claude
 > Desktop / Cursor. Risk tiers (0 auto · 1 confirm · 2 confirm + type the app name) are enforced in code, not in
 > the prompt. Stack: TypeScript, Next.js 15, Vercel AI SDK, Zod, SQLite, MCP SDK, Vitest — no agent framework.
 > Run: `cp .env.example .env` → add `LIARA_API_TOKEN` + an LLM key → `npm install` → `npm run dev`.
@@ -61,7 +61,7 @@
 ```
 
 - **رجیستری ابزار:** هر کار (خواندن لاگ، ری‌استارت، انتشار، دامنه…) یک ابزار با ورودی Zod، سطح ریسک و تابع
-  `verify` است. چت وب و سرور MCP دقیقاً از همین ۳۵ ابزار استفاده می‌کنند.
+  `verify` است. چت وب و سرور MCP دقیقاً از همین ۳۶ ابزار استفاده می‌کنند.
 - **دروازه‌ی ریسک (policy):** کد، نه پرامپت، تصمیم می‌گیرد چه چیزی تأیید لازم دارد؛ مدل نمی‌تواند از آن رد شود.
   هر اقدام اجراشده در جدول `audit` ثبت می‌شود (مقدار متغیرهای محرمانه پوشانده می‌شود).
 - **بسته‌ی شواهد (evidence packet):** برای عیب‌یابی، رویدادها، لاگ‌ها، متریک‌ها، نسخه‌ها، نمونه‌ها و پاسخ واقعی سایت
@@ -137,12 +137,12 @@
 |---|---|---|
 | ۰ — خودکار | بدون پرسیدن اجرا و در خط زمانی نشان داده می‌شود | خواندن سرویس‌ها، لاگ، رویداد، متریک، نسخه، دامنه، حساب؛ بررسی سلامت سایت؛ تحلیل پروژه؛ جست‌وجوی مستندات؛ تشخیص؛ پیشنهاد پلن |
 | ۱ — تأیید | کارت تأیید با یک کلیک | ری‌استارت، انتشار، برگشت به نسخه‌ی قبلی، متغیر محیطی، دامنه، SSL، ساخت سرویس |
-| ۲ — تأیید + تایپ نام | کارت تأیید که نام سرویس را می‌خواهد؛ هزینه یا برگشت‌ناپذیری صریح گفته می‌شود | تغییر پلن، خاموش کردن، حذف سرویس یا دامنه، تغییر دیسک، فرمان داخل کانتینر |
+| ۲ — تأیید + تایپ نام | کارت تأیید که نام سرویس را می‌خواهد؛ هزینه یا برگشت‌ناپذیری صریح گفته می‌شود | تغییر پلن، خاموش کردن، حذف سرویس یا دامنه، ساخت یا بزرگ کردن دیسک، فرمان داخل کانتینر |
 
 تأییدها ۱۵ دقیقه اعتبار دارند و فقط از رابط کاربری (`/api/approve`) پذیرفته می‌شوند. `AUTO_APPROVE` فقط برای
 اسکریپت‌های پذیرش است.
 
-**MCP:** با `npm run --silent mcp` همین ۳۵ ابزار در Claude Desktop، Cursor یا هر میزبان MCP در دسترس است. ابزار
+**MCP:** با `npm run --silent mcp` همین ۳۶ ابزار در Claude Desktop، Cursor یا هر میزبان MCP در دسترس است. ابزار
 ریسک ۱ بدون `"confirm": true` و ابزار ریسک ۲ بدون `"confirmAppName"` اجرا نمی‌شود؛ پیکربندی در
 [docs/MCP.md](docs/MCP.md).
 
@@ -188,6 +188,21 @@ npm run dev               # http://localhost:3000  (اگر پورت پر است:
 متغیرهای اصلی `.env`: `LIARA_API_TOKEN`، `DEMO_APP_NAME`، `LLM_PROVIDER` (`openai` | `gemini` | `openrouter`)،
 `LLM_FAST_MODEL`، `LLM_SMART_MODEL`، کلید همان سرویس، `WATCHER_INTERVAL_SEC` (پیش‌فرض ۶۰).
 
+### استقرار خود دستیار روی لیارا (اختیاری)
+
+دستیار می‌تواند رابط کاربری خودش را هم با همان ابزارها روی لیارا منتشر کند:
+
+```bash
+npm run deploy:self
+```
+
+این دستور فقط برنامه را نشان می‌دهد (نام سرویس، پلن و هزینه، دیسک، نام متغیرها) و چیزی را تغییر نمی‌دهد. با
+`npm run deploy:self -- --yes` به ترتیب `create_app` → `create_disk` → `deploy_project` اجرا می‌شود (هر کدام ثبت و
+بررسی می‌شود). پایگاه داده‌ی SQLite روی دیسک ماندگار `data` در مسیر `/data` است (`liara.json` → `disks`). مقدارهای
+غیرمحرمانه‌ی `.env` روی سرویس تنظیم می‌شوند؛ **کلیدهای محرمانه (`LIARA_API_TOKEN`، کلید مدل) فرستاده نمی‌شوند** و
+باید خودتان در پنل لیارا اضافه کنید. این مسیر روی شبیه‌ساز (`-- --sim --yes`) آزموده شده و هنوز روی حساب واقعی
+اجرا نشده است.
+
 ---
 
 ## ۷. سناریوهای دمو
@@ -200,7 +215,7 @@ cp -r demo-app ~/my-shop && rm ~/my-shop/liara.json
 ```
 
 **سناریو ۱ — اولین انتشار (حدود ۹۰ ثانیه)**
-1. در چت بنویسید: «این پروژه رو دیپلوی کن: ~/my-shop» (یا روی «پروژه‌ام را دیپلوی کن» بزنید؛ دستیار مسیر پروژه را می‌پرسد).
+1. در چت بنویسید: «این پروژه رو منتشر کن: ~/my-shop» (یا روی «پروژه‌ام را منتشر کن» بزنید؛ دستیار مسیر پروژه را می‌پرسد). نام سرویس را خودش از نام پوشه پیشنهاد می‌دهد.
 2. خط زمانی «تحلیل پروژه» و «پیشنهاد پلن» را نشان می‌دهد؛ کارت پلن دلیل و هزینه‌ی ماهانه و کفایت موجودی را می‌گوید.
 3. دستیار مقدار `PAYMENT_API_KEY` را می‌پرسد؛ بنویسید: `PAYMENT_API_KEY=demo`.
 4. کارت تأیید (ساخت سرویس + متغیر + انتشار) → «تأیید و اجرا».
