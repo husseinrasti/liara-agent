@@ -4,45 +4,45 @@
     "path": "/v1/projects/liara-agent-probe-u875/metrics/summary"
   },
   "status": 200,
-  "durationMs": 211,
+  "durationMs": 209,
   "body": {
     "cpuUsage": [
       {
         "value": [
-          1792766001,
-          "0.005024427210680517"
+          1792768183,
+          "0.004238445"
         ],
-        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.efeb7963-2745-4048-9133-b210c51b79c1-DEPLOY"
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.71abb80d-ea48-4bcf-ae2f-6b12a4d3f8c3-DEPLOY"
       }
     ],
     "memoryUsage": [
       {
         "value": [
-          1792766001,
-          "23293952"
+          1792768183,
+          "23896064"
         ],
-        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.10247522-a7ae-4fc1-a931-db391bd35f5d-DEPLOY"
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.c97c94ca-e153-46b5-9516-b75ee87f8834-DEPLOY"
       },
       {
         "value": [
-          1792766001,
-          "22618112"
+          1792768183,
+          "23334912"
         ],
-        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.a6bbc225-02af-4312-b931-2140de4185be-DEPLOY"
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.62f5e943-78ad-4d56-a2fd-59ea24587578-DEPLOY"
       },
       {
         "value": [
-          1792766001,
-          "24899584"
+          1792768183,
+          "1519616"
         ],
-        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.6d16c8e6-15e3-4dc4-b31f-06d19a439b50-DEPLOY"
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.2c97b83c-f1a3-43ac-b704-40a3fb63b179-DEPLOY"
       },
       {
         "value": [
-          1792766001,
-          "23363584"
+          1792768183,
+          "24526848"
         ],
-        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.efeb7963-2745-4048-9133-b210c51b79c1-DEPLOY"
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.71abb80d-ea48-4bcf-ae2f-6b12a4d3f8c3-DEPLOY"
       }
     ],
     "disksUsage": []

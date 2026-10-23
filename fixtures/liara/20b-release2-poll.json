@@ -1,7 +1,8 @@
 {
-  "releaseID": "6adb7024417e33237efdab04",
+  "releaseID": "6adb78a672aa39a87ab2112d",
   "states": [
     "PENDING",
+    "DEPLOYING",
     "READY"
   ],
   "timeline": [
@@ -11,13 +12,17 @@
     },
     {
       "atSec": 6,
+      "state": "DEPLOYING"
+    },
+    {
+      "atSec": 11,
       "state": "READY"
     }
   ],
   "final": {
-    "_id": "6adb7024417e33237efdab04",
+    "_id": "6adb78a672aa39a87ab2112d",
     "type": "DEPLOY",
-    "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:fnq1a341fqst",
+    "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:u60h57pqp3gs",
     "projectType": "node",
     "state": "READY",
     "port": 3000,
@@ -31,7 +36,7 @@
     "buildTimeout": 5,
     "client": "liara-agent/0.1",
     "disks": [],
-    "finishedAt": "2026-10-23T14:33:12.434Z",
+    "finishedAt": "2026-10-23T15:09:29.144Z",
     "platformConfig": {
       "version": "22",
       "mirror": true,
@@ -39,9 +44,9 @@
       "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
       "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
     },
-    "createdAt": "2026-10-23T14:33:08.813Z",
-    "tag": "v7",
+    "createdAt": "2026-10-23T15:09:26.092Z",
+    "tag": "v12",
     "sourceAvailable": true
   },
-  "durationSec": 6
+  "durationSec": 11
 }

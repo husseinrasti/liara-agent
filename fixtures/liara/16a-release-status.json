@@ -1,13 +1,13 @@
 {
   "request": {
     "method": "GET",
-    "path": "/v1/releases/6adb6f31417e33237efd6113"
+    "path": "/v1/releases/6adb77a9ce14a814507a3de5"
   },
   "status": 200,
-  "durationMs": 267,
+  "durationMs": 177,
   "body": {
     "release": {
-      "_id": "6adb6f31417e33237efd6113",
+      "_id": "6adb77a9ce14a814507a3de5",
       "type": "DEPLOY",
       "projectType": "node",
       "state": "READY",
@@ -19,7 +19,7 @@
         "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
         "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
       },
-      "createdAt": "2026-10-23T14:29:05.692Z"
+      "createdAt": "2026-10-23T15:05:13.095Z"
     },
     "platformConfig": {
       "version": "22",

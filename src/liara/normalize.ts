@@ -69,6 +69,7 @@ function flatEvent(row: Record<string, unknown>): AppEvent {
     reason,
     message,
     applet: asString(row.id)?.slice(0, 12),
+    ...(asString(row.release) ? { release: asString(row.release) } : {}),
     severity: eventSeverity(reason, type, message),
   };
 }

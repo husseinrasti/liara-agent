@@ -1,8 +1,8 @@
 {
   "request": {
     "method": "DELETE",
-    "path": "/v1/domains/6adb702bce14a8145077b2b2"
+    "path": "/v1/domains/6adb78b17b39ae0264e97b3e"
   },
   "status": 200,
-  "durationMs": 144
+  "durationMs": 149
 }

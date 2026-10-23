@@ -43,12 +43,29 @@ export function mergeSeries(m: MetricSeries | undefined, combine: (a: number, b:
   return [...byTs.entries()].sort((a, b) => a[0] - b[0]).map(([, v]) => v);
 }
 
+/**
+ * Latest value of the newest container: among series still reporting at the last timestamp, the one
+ * that started last. Each container is its own unlabeled series and a replaced container keeps
+ * reporting for a few minutes [probe 2026-10-23], so a max across series would show the old one.
+ */
+export function currentValue(m: MetricSeries | undefined): number | null {
+  const live = (m?.series ?? []).filter((s) => s.points.length > 0);
+  if (!live.length) return null;
+  const lastT = Math.max(...live.map((s) => s.points[s.points.length - 1]!.t));
+  const newest = live.filter((s) => s.points[s.points.length - 1]!.t === lastT).sort((a, b) => b.points[0]!.t - a.points[0]!.t)[0]!;
+  return newest.points[newest.points.length - 1]!.v;
+}
+
 const round = (n: number, d = 1) => Math.round(n * 10 ** d) / 10 ** d;
 const MB = 1024 * 1024;
 
 /** Memory values arrive in bytes (Prometheus working-set); small values are assumed to already be MB. */
 export function toMB(v: number): number {
   return v > 100_000 ? v / MB : v;
+}
+
+function withLast<T extends { last: number }>(stats: T | null, last: number | null): T | null {
+  return stats && last !== null ? { ...stats, last } : stats;
 }
 
 export interface MetricsDigest {
@@ -83,8 +100,10 @@ export interface SummarizeInput {
 export function summarizeMetrics(input: SummarizeInput): MetricsDigest {
   const cpuVals = mergeSeries(input.cpu, Math.max);
   const memVals = mergeSeries(input.memory, Math.max).map(toMB);
-  const cpuStats = summarizeSeries(cpuVals);
-  const memStats = summarizeSeries(memVals);
+  const cpuNow = currentValue(input.cpu);
+  const memNow = currentValue(input.memory);
+  const cpuStats = withLast(summarizeSeries(cpuVals), cpuNow);
+  const memStats = withLast(summarizeSeries(memVals), memNow === null ? null : toMB(memNow));
   const planCpu = input.plan?.cpu && input.plan.cpu > 0 ? input.plan.cpu : null;
   // CPU series are core-seconds per second (cores); express as % of the plan's CPU when known.
   const cpuScale = planCpu ? 100 / planCpu : 1;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MetricSeries } from '../../../liara/normalize';
-import { mergeSeries, summarizeMetrics, summarizeSeries, toMB, trendOf } from '../metrics';
+import { currentValue, mergeSeries, summarizeMetrics, summarizeSeries, toMB, trendOf } from '../metrics';
 
 const MB = 1024 * 1024;
 const series = (values: number[], applet = 'a'): MetricSeries => ({ series: [{ applet, points: values.map((v, i) => ({ t: 1_000_000 + i * 60_000, v })) }] });
@@ -50,6 +50,20 @@ describe('summarizeMetrics', () => {
   it('merges applets by max per timestamp', () => {
     const m: MetricSeries = { series: [series([1, 5]).series[0]!, { applet: 'b', points: [{ t: 1_000_000, v: 3 }] }] };
     expect(mergeSeries(m, Math.max)).toEqual([3, 5]);
+  });
+
+  it('takes the current value from the newest container, not a replaced one still reporting [probe]', () => {
+    const at = (min: number) => 1_000_000 + min * 60_000;
+    // old container near the limit keeps reporting for minutes after a rollback started a new one
+    const old = { points: [0, 1, 2, 3, 4, 5].map((i) => ({ t: at(i), v: (480 + i * 4) * MB })) };
+    const fresh = { points: [3, 4, 5].map((i) => ({ t: at(i), v: 60 * MB })) };
+    const gone = { points: [{ t: at(0), v: 10 * MB }] };
+    const memory: MetricSeries = { series: [fresh, old, gone] };
+    expect(currentValue(memory)).toBe(60 * MB);
+    const d = summarizeMetrics({ memory, plan: { ramMB: 512, cpu: 0.5 } });
+    expect(d.memory).toMatchObject({ lastMB: 60, maxMB: 500, nearLimit: true });
+    expect(d.memory!.lastPctOfLimit).toBeLessThan(15);
+    expect(currentValue({ series: [] })).toBeNull();
   });
 
   it('treats small values as MB already', () => {

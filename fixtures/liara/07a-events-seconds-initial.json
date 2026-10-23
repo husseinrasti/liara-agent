@@ -3,69 +3,109 @@
     "method": "GET",
     "path": "/v1/projects/liara-agent-probe-u875/events",
     "query": {
-      "start": 1792679337,
-      "end": 1792765737
+      "start": 1792681506,
+      "end": 1792767906
     }
   },
   "status": 200,
-  "durationMs": 559,
+  "durationMs": 180,
   "body": {
     "data": [
       {
-        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "id": "4d275df9d58073341fdb9b872339792ae353854dfe97df2290bfeb51de5fa719",
+        "status": "destroy",
+        "action": "destroy",
+        "time": "1792766036",
+        "release": "6adb6f31417e33237efd6113",
+        "tag": "v3"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "destroy",
+        "action": "destroy",
+        "time": "1792766036",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "eb8855e2121c8762c507428f17c778ab22b21871092ae6beab5baeb672656d0c",
         "status": "die",
         "action": "die",
-        "time": "1792765713",
-        "release": "6adb6e2872aa39a87aae92be",
-        "tag": "v1"
+        "time": "1792766036",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
       },
       {
-        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "id": "eb8855e2121c8762c507428f17c778ab22b21871092ae6beab5baeb672656d0c",
         "status": "stop",
         "action": "stop",
-        "time": "1792765713",
-        "release": "6adb6e2872aa39a87aae92be",
-        "tag": "v1"
+        "time": "1792766036",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
       },
       {
-        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "id": "eb8855e2121c8762c507428f17c778ab22b21871092ae6beab5baeb672656d0c",
         "status": "kill",
         "action": "kill",
-        "time": "1792765712",
-        "release": "6adb6e2872aa39a87aae92be",
-        "tag": "v1"
+        "time": "1792766035",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
       },
       {
-        "id": "201a9713e34f25704343b9300809ad96ca1f2bd4f40ea665e17b431ee0d8eb4b",
+        "id": "fdb458a3ea2dace88e576c7d4f78b5d1b6e8a35896773b34750de230010715b4",
         "status": "start",
         "action": "start",
-        "time": "1792765700",
-        "release": "6adb6ec77b39ae0264e66ac9",
-        "tag": "v2"
+        "time": "1792766022",
+        "release": "6adb7024417e33237efdab04",
+        "tag": "v7"
       },
       {
-        "id": "201a9713e34f25704343b9300809ad96ca1f2bd4f40ea665e17b431ee0d8eb4b",
+        "id": "fdb458a3ea2dace88e576c7d4f78b5d1b6e8a35896773b34750de230010715b4",
         "status": "create",
         "action": "create",
-        "time": "1792765696",
-        "release": "6adb6ec77b39ae0264e66ac9",
-        "tag": "v2"
+        "time": "1792766020",
+        "release": "6adb7024417e33237efdab04",
+        "tag": "v7"
       },
       {
-        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "id": "eb8855e2121c8762c507428f17c778ab22b21871092ae6beab5baeb672656d0c",
         "status": "start",
         "action": "start",
-        "time": "1792765519",
-        "release": "6adb6e2872aa39a87aae92be",
-        "tag": "v1"
+        "time": "1792765966",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
       },
       {
-        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "id": "eb8855e2121c8762c507428f17c778ab22b21871092ae6beab5baeb672656d0c",
         "status": "create",
         "action": "create",
-        "time": "1792765517",
-        "release": "6adb6e2872aa39a87aae92be",
-        "tag": "v1"
+        "time": "1792765964",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "die",
+        "action": "die",
+        "time": "1792765964",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "stop",
+        "action": "stop",
+        "time": "1792765964",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "kill",
+        "action": "kill",
+        "time": "1792765963",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
       }
     ]
   }

@@ -1,8 +1,9 @@
 {
-  "releaseID": "6adb6f31417e33237efd6113",
+  "releaseID": "6adb77a9ce14a814507a3de5",
   "states": [
     "PENDING",
     "BUILDING",
+    "DEPLOYING",
     "READY"
   ],
   "timeline": [
@@ -11,18 +12,22 @@
       "state": "PENDING"
     },
     {
-      "atSec": 5,
+      "atSec": 6,
       "state": "BUILDING"
     },
     {
-      "atSec": 21,
+      "atSec": 27,
+      "state": "DEPLOYING"
+    },
+    {
+      "atSec": 32,
       "state": "READY"
     }
   ],
   "final": {
-    "_id": "6adb6f31417e33237efd6113",
+    "_id": "6adb77a9ce14a814507a3de5",
     "type": "DEPLOY",
-    "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:cweniixs8740",
+    "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:s1dbzpu6kjmd",
     "projectType": "node",
     "state": "READY",
     "port": 3000,
@@ -36,7 +41,7 @@
     "buildTimeout": 5,
     "client": "liara-agent/0.1",
     "disks": [],
-    "finishedAt": "2026-10-23T14:29:24.325Z",
+    "finishedAt": "2026-10-23T15:05:39.656Z",
     "platformConfig": {
       "version": "22",
       "mirror": true,
@@ -44,9 +49,9 @@
       "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
       "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
     },
-    "createdAt": "2026-10-23T14:29:05.692Z",
-    "tag": "v3",
+    "createdAt": "2026-10-23T15:05:13.095Z",
+    "tag": "v8",
     "sourceAvailable": true
   },
-  "durationSec": 21
+  "durationSec": 32
 }

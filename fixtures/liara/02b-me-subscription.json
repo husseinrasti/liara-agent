@@ -4,7 +4,7 @@
     "path": "/v1/me/subscription"
   },
   "status": 200,
-  "durationMs": 582,
+  "durationMs": 603,
   "body": {
     "currentSubscriptionPlan": {}
   }

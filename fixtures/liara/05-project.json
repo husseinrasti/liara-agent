@@ -4,7 +4,7 @@
     "path": "/v1/projects/liara-agent-probe-u875"
   },
   "status": 200,
-  "durationMs": 114,
+  "durationMs": 87,
   "body": {
     "project": {
       "_id": "6adb6e22fc09ae5c3cfe4ccd",
@@ -22,13 +22,13 @@
           "key": "PORT",
           "value": "3000",
           "encrypted": false,
-          "_id": "6adb6e22fc09ae5c3cfe4cce"
+          "_id": "6adb6fe872aa39a87aaf1a25"
         },
         {
           "key": "NODE_ENV",
           "value": "production",
           "encrypted": false,
-          "_id": "6adb6e22fc09ae5c3cfe4ccf"
+          "_id": "6adb6fe872aa39a87aaf1a26"
         }
       ],
       "planID": "small-g2",

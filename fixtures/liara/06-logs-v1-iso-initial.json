@@ -3,11 +3,11 @@
     "method": "GET",
     "path": "/v1/projects/liara-agent-probe-u875/logs",
     "query": {
-      "since": "2026-10-23T13:28:56.100Z"
+      "since": "2026-10-23T14:05:05.649Z"
     }
   },
   "status": 400,
-  "durationMs": 145,
+  "durationMs": 160,
   "body": {
     "statusCode": 400,
     "error": "Bad Request",

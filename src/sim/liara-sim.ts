@@ -4,6 +4,7 @@
  * `httpFetch` for `*.liara.run` health checks. For offline UI work and rehearsal
  * only — the UI labels this mode clearly and it is never the default.
  */
+import { EVENTS_PAGE_SIZE } from '../liara/endpoints/events';
 import { appletState, eventsBetween, healthAt, logsBetween, memoryMB, cpuCores, type SimEvent } from './behavior';
 import { SIM_PLANS, planSpec } from './catalog';
 import { SimState, type SimApp } from './state';
@@ -237,11 +238,18 @@ export function createLiaraSimulator(opts: { now?: () => number; seed?: boolean;
       });
     }
     if (sub === '/events' && method === 'GET') {
-      const start = Number(q.get('start') ?? 0) * 1000 || t - 86_400_000;
-      const end = Number(q.get('end') ?? 0) * 1000 || t;
-      const evs: SimEvent[] = [...app.lifecycle.filter((e) => e.t >= start && e.t <= end), ...eventsBetween(run, start, end)].sort((a, b) => a.t - b.t);
+      for (const k of q.keys()) if (!['start', 'end', 'search'].includes(k)) return json({ statusCode: 400, error: 'Bad Request', message: `"${k}" is not allowed` }, 400);
+      const start = Number(q.get('start') ?? 0) || Math.floor((t - 86_400_000) / 1000);
+      const end = Number(q.get('end') ?? 0) || Math.floor(t / 1000) + 1;
+      // generated over the app's whole life so container ids stay stable across pages
+      const evs: SimEvent[] = [...app.lifecycle, ...eventsBetween(run, app.createdAt, t)].filter((e) => e.t <= t).sort((a, b) => a.t - b.t);
       const release = app.releases.find((r) => r._id === app.current);
-      return json({ data: containerEvents(evs, release?._id ?? null, release?.tag ?? null) });
+      const search = q.get('search');
+      const rows = containerEvents(evs, release?._id ?? null, release?.tag ?? null)
+        .filter((r) => +r.time >= start && +r.time < end && (!search || r.action.includes(search)))
+        .reverse();
+      // like the real API: newest first, capped at 12 rows, `end` exclusive [probe 2026-10-23]
+      return json({ data: rows.slice(0, EVENTS_PAGE_SIZE) });
     }
     if (sub === '/logs' && method === 'GET') {
       const since = Number(q.get('start') ?? q.get('since') ?? 0);

@@ -3,12 +3,12 @@
     "method": "GET",
     "path": "/v2/projects/liara-agent-probe-u875/logs",
     "query": {
-      "start": 1792765745,
+      "start": 1792767913,
       "direction": "backward"
     }
   },
   "status": 200,
-  "durationMs": 377,
+  "durationMs": 164,
   "body": {
     "data": []
   }

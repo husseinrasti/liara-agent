@@ -8,12 +8,154 @@
     }
   },
   "status": 200,
-  "durationMs": 107,
+  "durationMs": 309,
   "body": {
-    "total": 7,
-    "currentRelease": "6adb7024417e33237efdab04",
-    "readyReleasesCount": 7,
+    "total": 12,
+    "currentRelease": "6adb78a672aa39a87ab2112d",
+    "readyReleasesCount": 12,
     "releases": [
+      {
+        "_id": "6adb78a672aa39a87ab2112d",
+        "type": "DEPLOY",
+        "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:u60h57pqp3gs",
+        "projectType": "node",
+        "state": "READY",
+        "port": 3000,
+        "buildArgs": {
+          "__NODE_MIRROR": "true",
+          "__NODE_MIRRORURL": "http://203.0.113.10/repository/npm-proxy",
+          "__NODE_GITHUBMIRRORURL": "http://203.0.113.10/repository/github-proxy",
+          "__NODE_MAPBOXMIRRORURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "buildLocation": "iran",
+        "buildTimeout": 5,
+        "client": "liara-agent/0.1",
+        "disks": [],
+        "finishedAt": "2026-10-23T15:09:29.144Z",
+        "platformConfig": {
+          "version": "22",
+          "mirror": true,
+          "mirrorURL": "http://203.0.113.10/repository/npm-proxy",
+          "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
+          "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "createdAt": "2026-10-23T15:09:26.092Z",
+        "tag": "v12",
+        "sourceAvailable": true
+      },
+      {
+        "_id": "6adb786a417e33237e006492",
+        "type": "ENV_UPDATE",
+        "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:s1dbzpu6kjmd",
+        "projectType": "node",
+        "state": "READY",
+        "port": 3000,
+        "buildArgs": {
+          "__NODE_MIRROR": "true",
+          "__NODE_MIRRORURL": "http://203.0.113.10/repository/npm-proxy",
+          "__NODE_GITHUBMIRRORURL": "http://203.0.113.10/repository/github-proxy",
+          "__NODE_MAPBOXMIRRORURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "buildLocation": "iran",
+        "buildTimeout": 5,
+        "disks": [],
+        "createdAt": "2026-10-23T15:08:25.999Z",
+        "finishedAt": null,
+        "platformConfig": {
+          "version": "22",
+          "mirror": true,
+          "mirrorURL": "http://203.0.113.10/repository/npm-proxy",
+          "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
+          "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "tag": "v11",
+        "sourceAvailable": true
+      },
+      {
+        "_id": "6adb7865aa8f2ba3741d27d2",
+        "type": "ENV_UPDATE",
+        "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:s1dbzpu6kjmd",
+        "projectType": "node",
+        "state": "READY",
+        "port": 3000,
+        "buildArgs": {
+          "__NODE_MIRROR": "true",
+          "__NODE_MIRRORURL": "http://203.0.113.10/repository/npm-proxy",
+          "__NODE_GITHUBMIRRORURL": "http://203.0.113.10/repository/github-proxy",
+          "__NODE_MAPBOXMIRRORURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "buildLocation": "iran",
+        "buildTimeout": 5,
+        "disks": [],
+        "createdAt": "2026-10-23T15:08:21.448Z",
+        "finishedAt": null,
+        "platformConfig": {
+          "version": "22",
+          "mirror": true,
+          "mirrorURL": "http://203.0.113.10/repository/npm-proxy",
+          "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
+          "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "tag": "v10",
+        "sourceAvailable": true
+      },
+      {
+        "_id": "6adb78604400f7631da9bdc6",
+        "type": "ENV_UPDATE",
+        "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:s1dbzpu6kjmd",
+        "projectType": "node",
+        "state": "READY",
+        "port": 3000,
+        "buildArgs": {
+          "__NODE_MIRROR": "true",
+          "__NODE_MIRRORURL": "http://203.0.113.10/repository/npm-proxy",
+          "__NODE_GITHUBMIRRORURL": "http://203.0.113.10/repository/github-proxy",
+          "__NODE_MAPBOXMIRRORURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "buildLocation": "iran",
+        "buildTimeout": 5,
+        "disks": [],
+        "createdAt": "2026-10-23T15:08:16.713Z",
+        "finishedAt": null,
+        "platformConfig": {
+          "version": "22",
+          "mirror": true,
+          "mirrorURL": "http://203.0.113.10/repository/npm-proxy",
+          "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
+          "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "tag": "v9",
+        "sourceAvailable": true
+      },
+      {
+        "_id": "6adb77a9ce14a814507a3de5",
+        "type": "DEPLOY",
+        "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:s1dbzpu6kjmd",
+        "projectType": "node",
+        "state": "READY",
+        "port": 3000,
+        "buildArgs": {
+          "__NODE_MIRROR": "true",
+          "__NODE_MIRRORURL": "http://203.0.113.10/repository/npm-proxy",
+          "__NODE_GITHUBMIRRORURL": "http://203.0.113.10/repository/github-proxy",
+          "__NODE_MAPBOXMIRRORURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "buildLocation": "iran",
+        "buildTimeout": 5,
+        "client": "liara-agent/0.1",
+        "disks": [],
+        "finishedAt": "2026-10-23T15:05:39.656Z",
+        "platformConfig": {
+          "version": "22",
+          "mirror": true,
+          "mirrorURL": "http://203.0.113.10/repository/npm-proxy",
+          "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
+          "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
+        },
+        "createdAt": "2026-10-23T15:05:13.095Z",
+        "tag": "v8",
+        "sourceAvailable": true
+      },
       {
         "_id": "6adb7024417e33237efdab04",
         "type": "DEPLOY",
@@ -154,64 +296,6 @@
         },
         "createdAt": "2026-10-23T14:29:05.692Z",
         "tag": "v3",
-        "sourceAvailable": true
-      },
-      {
-        "_id": "6adb6ec77b39ae0264e66ac9",
-        "type": "DEPLOY",
-        "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:0njm3mazot77",
-        "projectType": "node",
-        "state": "READY",
-        "port": 3000,
-        "buildArgs": {
-          "__NODE_MIRROR": "true",
-          "__NODE_MIRRORURL": "http://203.0.113.10/repository/npm-proxy",
-          "__NODE_GITHUBMIRRORURL": "http://203.0.113.10/repository/github-proxy",
-          "__NODE_MAPBOXMIRRORURL": "http://203.0.113.10/repository/mapbox-proxy"
-        },
-        "buildLocation": "iran",
-        "buildTimeout": 5,
-        "client": "liara-agent/0.1",
-        "disks": [],
-        "finishedAt": "2026-10-23T14:27:47.978Z",
-        "platformConfig": {
-          "version": "22",
-          "mirror": true,
-          "mirrorURL": "http://203.0.113.10/repository/npm-proxy",
-          "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
-          "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
-        },
-        "createdAt": "2026-10-23T14:27:19.349Z",
-        "tag": "v2",
-        "sourceAvailable": true
-      },
-      {
-        "_id": "6adb6e2872aa39a87aae92be",
-        "type": "DEPLOY",
-        "imageName": "registry.c1.liara.ir/apps/6adb6e22fc09ae5c3cfe4ccd:ryo9te4psmw0",
-        "projectType": "node",
-        "state": "READY",
-        "port": 3000,
-        "buildArgs": {
-          "__NODE_MIRROR": "true",
-          "__NODE_MIRRORURL": "http://203.0.113.10/repository/npm-proxy",
-          "__NODE_GITHUBMIRRORURL": "http://203.0.113.10/repository/github-proxy",
-          "__NODE_MAPBOXMIRRORURL": "http://203.0.113.10/repository/mapbox-proxy"
-        },
-        "buildLocation": "iran",
-        "buildTimeout": 5,
-        "client": "liara-agent/0.1",
-        "disks": [],
-        "finishedAt": "2026-10-23T14:25:00.770Z",
-        "platformConfig": {
-          "version": "22",
-          "mirror": true,
-          "mirrorURL": "http://203.0.113.10/repository/npm-proxy",
-          "githubMirrorURL": "http://203.0.113.10/repository/github-proxy",
-          "mapboxMirrorURL": "http://203.0.113.10/repository/mapbox-proxy"
-        },
-        "createdAt": "2026-10-23T14:24:40.580Z",
-        "tag": "v1",
         "sourceAvailable": true
       }
     ],

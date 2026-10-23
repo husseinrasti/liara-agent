@@ -3,11 +3,11 @@
     "method": "GET",
     "path": "/v1/projects/liara-agent-probe-u875/metrics/cpu",
     "query": {
-      "since": 1792762139207
+      "since": 1792764307489
     }
   },
   "status": 503,
-  "durationMs": 297,
+  "durationMs": 198,
   "body": {
     "statusCode": 503,
     "error": "Service Unavailable",

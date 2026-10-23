@@ -175,6 +175,8 @@ export interface AppEvent {
   message: string;
   count?: number;
   applet?: string;
+  /** release id of the container (flat container events) */
+  release?: string;
   severity: EventSeverity;
 }
 

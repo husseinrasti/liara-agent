@@ -4,7 +4,7 @@
     "path": "/v1/me"
   },
   "status": 200,
-  "durationMs": 786,
+  "durationMs": 379,
   "body": {
     "user": {
       "isTeamCreator": true,

@@ -3,12 +3,12 @@
     "method": "GET",
     "path": "/v1/projects/liara-agent-probe-u875/events",
     "query": {
-      "start": 1792679596155,
-      "end": 1792765996155
+      "start": 1792681778307,
+      "end": 1792768178307
     }
   },
   "status": 200,
-  "durationMs": 184,
+  "durationMs": 151,
   "body": {
     "data": []
   }

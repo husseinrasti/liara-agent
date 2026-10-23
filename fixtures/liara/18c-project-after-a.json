@@ -4,7 +4,7 @@
     "path": "/v1/projects/liara-agent-probe-u875"
   },
   "status": 200,
-  "durationMs": 246,
+  "durationMs": 464,
   "body": {
     "project": {
       "_id": "6adb6e22fc09ae5c3cfe4ccd",
@@ -22,7 +22,7 @@
           "key": "PROBE_A",
           "value": "1",
           "encrypted": false,
-          "_id": "6adb6fdf72aa39a87aaf15b9"
+          "_id": "6adb78604400f7631da9bdc2"
         }
       ],
       "planID": "small-g2",

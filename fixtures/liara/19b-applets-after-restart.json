@@ -4,7 +4,7 @@
     "path": "/v1/projects/liara-agent-probe-u875/applets"
   },
   "status": 500,
-  "durationMs": 241,
+  "durationMs": 209,
   "body": {
     "error": "Internal Server Error"
   }

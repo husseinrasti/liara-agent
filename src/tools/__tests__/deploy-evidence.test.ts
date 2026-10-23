@@ -1,10 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import { fakeClient, fakeContext } from '../../test-utils/fake-liara';
 import { collectEvidence } from '../composite/collect-evidence';
-import { currentReleaseId, pickRollbackTarget } from '../liara/deploy';
+import { currentReleaseId, pickRollbackTarget, waitForContainerStart } from '../liara/deploy';
 
 const MB = 1024 * 1024;
 const ns = (iso: string) => `${Date.parse(iso)}000000`;
+
+describe('waitForContainerStart', () => {
+  const start = (release: string, time: number) => ({ id: `c-${release}`, status: 'start', action: 'start', time: String(time), release, tag: 'v2' });
+  it('waits until a start event carries the new release id [probe: start comes ~30–40 s after READY]', async () => {
+    let calls = 0;
+    const liara = fakeClient({
+      'GET /v1/projects/app/events': ({ url }) => {
+        expect(url.searchParams.get('search')).toBe('start');
+        calls++;
+        return { body: { data: calls < 3 ? [start('old', 100)] : [start('new', 140), start('old', 100)] } };
+      },
+    });
+    expect(await waitForContainerStart(fakeContext(liara), 'app', 'new')).toBe(true);
+    expect(calls).toBe(3);
+  });
+  it('gives up after the timeout, and returns null when events cannot be read', async () => {
+    const stale = fakeClient({ 'GET /v1/projects/app/events': { body: { data: [start('old', 100)] } } });
+    expect(await waitForContainerStart(fakeContext(stale), 'app', 'new')).toBe(false);
+    expect(await waitForContainerStart(fakeContext(fakeClient({})), 'app', 'new')).toBeNull();
+  });
+});
 
 describe('pickRollbackTarget', () => {
   const releases = [

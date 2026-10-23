@@ -3,145 +3,91 @@
     "method": "GET",
     "path": "/v2/projects/liara-agent-probe-u875/logs",
     "query": {
-      "start": 1792765134,
+      "start": 1792767304,
       "direction": "forward"
     }
   },
   "status": 200,
-  "durationMs": 201,
+  "durationMs": 284,
   "body": {
     "data": [
       {
         "metaData": {
-          "releaseId": "6adb6e2872aa39a87aae92be"
+          "releaseId": "6adb7865aa8f2ba3741d27d2"
         },
         "values": [
           [
-            "1792765519661429383",
+            "1792768107559359570",
             "{\"type\":\"stdout\",\"_entry\":\"\"}"
           ],
           [
-            "1792765519661557590",
+            "1792768107559734249",
             "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
           ],
           [
-            "1792765519661612269",
+            "1792768107559895730",
             "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
           ],
           [
-            "1792765519661652065",
+            "1792768107560039150",
             "{\"type\":\"stdout\",\"_entry\":\"\"}"
           ],
           [
-            "1792765519814760374",
+            "1792768107671999127",
             "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
           ]
         ]
       },
       {
         "metaData": {
-          "releaseId": "6adb6ec77b39ae0264e66ac9"
+          "releaseId": "6adb77a9ce14a814507a3de5"
         },
         "values": [
           [
-            "1792765700903187995",
+            "1792767968354692705",
             "{\"type\":\"stdout\",\"_entry\":\"\"}"
           ],
           [
-            "1792765700903305620",
+            "1792767968360251856",
             "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
           ],
           [
-            "1792765700903354668",
+            "1792767968360357809",
             "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
           ],
           [
-            "1792765700903394310",
+            "1792767968361598140",
             "{\"type\":\"stdout\",\"_entry\":\"\"}"
           ],
           [
-            "1792765701061053982",
+            "1792767968465370057",
             "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
           ]
         ]
       },
       {
         "metaData": {
-          "releaseId": "6adb6fe872aa39a87aaf1a41"
+          "releaseId": "6adb786a417e33237e006492"
         },
         "values": [
           [
-            "1792765937260584078",
+            "1792768135236886336",
             "{\"type\":\"stdout\",\"_entry\":\"\"}"
           ],
           [
-            "1792765937260737066",
+            "1792768135237007530",
             "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
           ],
           [
-            "1792765937260780960",
+            "1792768135237079445",
             "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
           ],
           [
-            "1792765937260870495",
+            "1792768135237140243",
             "{\"type\":\"stdout\",\"_entry\":\"\"}"
           ],
           [
-            "1792765937439419300",
-            "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
-          ]
-        ]
-      },
-      {
-        "metaData": {
-          "releaseId": "6adb6f31417e33237efd6113"
-        },
-        "values": [
-          [
-            "1792765797159033469",
-            "{\"type\":\"stdout\",\"_entry\":\"\"}"
-          ],
-          [
-            "1792765797159164025",
-            "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
-          ],
-          [
-            "1792765797159198421",
-            "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
-          ],
-          [
-            "1792765797159243450",
-            "{\"type\":\"stdout\",\"_entry\":\"\"}"
-          ],
-          [
-            "1792765797350196909",
-            "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
-          ]
-        ]
-      },
-      {
-        "metaData": {
-          "releaseId": "6adb6fe872aa39a87aaf1a41"
-        },
-        "values": [
-          [
-            "1792765967576820052",
-            "{\"type\":\"stdout\",\"_entry\":\"\"}"
-          ],
-          [
-            "1792765967576941590",
-            "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
-          ],
-          [
-            "1792765967576993204",
-            "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
-          ],
-          [
-            "1792765967577033046",
-            "{\"type\":\"stdout\",\"_entry\":\"\"}"
-          ],
-          [
-            "1792765967738806307",
+            "1792768135356475465",
             "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
           ]
         ]

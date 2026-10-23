@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { badReleases, linkSourceRelease, markReleaseBad, recordSource, sourceForRelease, sourcesFor } from '../../db/repo';
 import type { DeployStage } from '../../events';
 import { getReleases } from '../../liara/endpoints/apps';
+import { getEvents } from '../../liara/endpoints/events';
 import { deployRelease, isCodeRelease, MAX_SOURCE_BYTES, RELEASE_READY, ReleaseWaitError, uploadSource, waitForRelease } from '../../liara/endpoints/deploy';
 import { dateTimeFa } from '../../liara/time';
 import type { Release, ReleasesPage } from '../../liara/types';
@@ -95,15 +96,35 @@ export async function waitAndReport(ctx: ToolContext, appName: string, releaseID
   }
 }
 
+const CONTAINER_START_POLL_MS = 10_000;
+const CONTAINER_START_TIMEOUT_MS = 90_000;
+
+/**
+ * READY is not "running": the release's container starts ~30–40 s later and until then the old
+ * container answers [probe 2026-10-23]. Polls `start` events for one carrying this release id.
+ * Returns null when events cannot be read (do not block on it).
+ */
+export async function waitForContainerStart(ctx: ToolContext, appName: string, releaseID: string): Promise<boolean | null> {
+  for (let i = 0; i <= CONTAINER_START_TIMEOUT_MS / CONTAINER_START_POLL_MS; i++) {
+    if (i > 0) await ctx.sleep(CONTAINER_START_POLL_MS);
+    const events = await getEvents(ctx.liara, appName, { search: 'start', maxPages: 1 }).catch(() => null);
+    if (!events) return null;
+    if (events.some((e) => e.release === releaseID && e.reason === 'Started')) return true;
+  }
+  return false;
+}
+
 export async function verifyRelease(ctx: ToolContext, appName: string, before: unknown, releaseID?: string): Promise<VerifyOutcome> {
   progress(ctx, 'health', 'running');
   const page = await getReleases(ctx.liara, appName, 1, 10);
   const rel = releaseID ? page.releases.find((r) => r._id === releaseID) : page.releases[0];
   const ready = Boolean(rel && RELEASE_READY.test(rel.state));
+  const started = ready && rel ? await waitForContainerStart(ctx, appName, rel._id) : null;
   const health = await verifyAppHealthy(ctx, appName, sinceOf(before, ctx));
   const ok = ready && health.ok;
   progress(ctx, 'health', ok ? 'done' : 'failed', health.evidence[health.evidence.length - 1], appUrlFor(ctx, appName));
-  return { ok, evidence: [`وضعیت نسخه: ${rel ? releaseStateFa(rel.state) : 'پیدا نشد'}`, ...health.evidence] };
+  const startLine = started === null ? [] : [started ? 'نسخه‌ی جدید روی سرور اجرا شد' : 'اجرای نسخه‌ی جدید هنوز در رویدادهای لیارا دیده نشده'];
+  return { ok, evidence: [`وضعیت نسخه: ${rel ? releaseStateFa(rel.state) : 'پیدا نشد'}`, ...startLine, ...health.evidence] };
 }
 
 export const deployReleaseTool = defineTool({

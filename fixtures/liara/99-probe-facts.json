@@ -1,5 +1,5 @@
 {
-  "ranAt": "2026-10-23T14:28:54.101Z",
+  "ranAt": "2026-10-23T15:05:04.089Z",
   "appName": "liara-agent-probe-u875",
   "appCreated": false,
   "createAttempts": [],
@@ -861,27 +861,27 @@
   "logs": {
     "v2Forward_initial": {
       "status": 200,
-      "count": 10,
+      "count": 30,
       "first": "1792765519661429383",
-      "last": "1792765701061053982"
+      "last": "1792766023402222524"
     },
     "v2Backward_initial": {
       "status": 200,
-      "count": 10,
+      "count": 30,
       "first": "1792765519661429383",
-      "last": "1792765701061053982"
+      "last": "1792766023402222524"
     },
     "v1Seconds_initial": {
       "status": 200,
       "count": 1,
-      "first": "2026-10-23T14:29:01.093Z",
-      "last": "2026-10-23T14:29:01.093Z"
+      "first": "2026-10-23T15:05:10.642Z",
+      "last": "2026-10-23T15:05:10.642Z"
     },
     "v1Ms_initial": {
       "status": 200,
       "count": 1,
-      "first": "2026-10-23T14:29:01.318Z",
-      "last": "2026-10-23T14:29:01.318Z"
+      "first": "2026-10-23T15:05:10.750Z",
+      "last": "2026-10-23T15:05:10.750Z"
     },
     "v1Iso_initial": {
       "status": 400,
@@ -898,32 +898,32 @@
     "v1Seconds_afterDeploy": {
       "status": 200,
       "count": 1,
-      "first": "2026-10-23T14:29:28.541Z",
-      "last": "2026-10-23T14:29:28.541Z"
+      "first": "2026-10-23T15:05:46.250Z",
+      "last": "2026-10-23T15:05:46.250Z"
     },
     "v2Forward_late": {
       "status": 200,
-      "count": 25,
-      "first": "1792765519661429383",
-      "last": "1792765967738806307"
+      "count": 15,
+      "first": "1792767968354692705",
+      "last": "1792768135356475465"
     },
     "v2Backward_late": {
       "status": 200,
-      "count": 25,
-      "first": "1792765519661429383",
-      "last": "1792765967738806307"
+      "count": 15,
+      "first": "1792767968354692705",
+      "last": "1792768135356475465"
     },
     "v1Seconds_late": {
       "status": 200,
       "count": 1,
-      "first": "2026-10-23T14:33:20.599Z",
-      "last": "2026-10-23T14:33:20.599Z"
+      "first": "2026-10-23T15:09:42.764Z",
+      "last": "2026-10-23T15:09:42.764Z"
     }
   },
   "events": {
     "initialSeconds": {
       "status": 200,
-      "rows": 0
+      "rows": 12
     },
     "initialMs": {
       "status": 200,
@@ -931,11 +931,11 @@
     },
     "initialNoParams": {
       "status": 200,
-      "rows": 0
+      "rows": 12
     },
     "lateSeconds": {
       "status": 200,
-      "rows": 0
+      "rows": 12
     },
     "lateMs": {
       "status": 200,
@@ -943,16 +943,16 @@
     },
     "lateNoParams": {
       "status": 200,
-      "rows": 0
+      "rows": 12
     }
   },
   "metrics": {
     "cpu_seconds_initial": {
       "status": 200,
-      "series": 2,
-      "points": 7,
-      "firstTs": 1792765559,
-      "lastTs": 1792765739
+      "series": 6,
+      "points": 80,
+      "firstTs": 1792765537,
+      "lastTs": 1792767907
     },
     "cpu_ms_initial": {
       "status": 503,
@@ -966,17 +966,17 @@
     },
     "memory_seconds_initial": {
       "status": 200,
-      "series": 2,
-      "points": 10,
-      "firstTs": 1792765529,
-      "lastTs": 1792765739
+      "series": 6,
+      "points": 127,
+      "firstTs": 1792765537,
+      "lastTs": 1792767907
     },
     "cpu_seconds_late": {
       "status": 200,
-      "series": 5,
-      "points": 17,
-      "firstTs": 1792765547,
-      "lastTs": 1792765997
+      "series": 8,
+      "points": 88,
+      "firstTs": 1792765539,
+      "lastTs": 1792768179
     },
     "cpu_ms_late": {
       "status": 503,
@@ -990,40 +990,41 @@
     },
     "memory_seconds_late": {
       "status": 200,
-      "series": 5,
-      "points": 38,
-      "firstTs": 1792765547,
-      "lastTs": 1792765997
+      "series": 9,
+      "points": 148,
+      "firstTs": 1792765539,
+      "lastTs": 1792768179
     },
     "netRx": {
       "status": 200,
-      "series": 5,
-      "points": 34,
-      "firstTs": 1792765547,
-      "lastTs": 1792765997
+      "series": 8,
+      "points": 141,
+      "firstTs": 1792765539,
+      "lastTs": 1792768179
     },
     "netTx": {
       "status": 200,
-      "series": 5,
-      "points": 34,
-      "firstTs": 1792765547,
-      "lastTs": 1792765997
+      "series": 8,
+      "points": 141,
+      "firstTs": 1792765539,
+      "lastTs": 1792768179
     }
   },
   "release": {
     "states": [
       "PENDING",
       "BUILDING",
+      "DEPLOYING",
       "READY"
     ],
-    "releaseID": "6adb6f31417e33237efd6113",
+    "releaseID": "6adb77a9ce14a814507a3de5",
     "deployBodyAccepted": {
       "sourceID": "<sourceID>",
       "port": 3000,
       "type": "node"
     },
     "finalState": "READY",
-    "durationSec": 21,
+    "durationSec": 32,
     "releaseKeys": [
       "_id",
       "type",
@@ -1047,8 +1048,8 @@
     "v2": {
       "status": 200,
       "count": 20,
-      "first": "2026-10-23T14:29:06.382Z",
-      "last": "2026-10-23T14:29:08.386Z"
+      "first": "2026-10-23T15:05:13.560Z",
+      "last": "2026-10-23T15:05:20.287Z"
     },
     "v2Since": {
       "status": 200,
@@ -1117,8 +1118,8 @@
     "listStatus": 200,
     "checkStatus": 200,
     "deleteStatus": 200,
-    "name": "probe-r03m02.liara-agent-test.ir",
-    "cname": "INVALID"
+    "name": "probe-pdjap8.liara-agent-test.ir",
+    "cname": "sabalan.liara.cloud"
   },
   "errors": [],
   "bundlePlansSample": {
@@ -1308,28 +1309,39 @@
   "projectPlanID": "small-g2",
   "logLineSample": {
     "metaData": {
-      "releaseId": "6adb6fe872aa39a87aaf1a41"
+      "releaseId": "6adb786a417e33237e006492"
     },
     "firstRow": [
-      "1792765967738806307",
+      "1792768135356475465",
       "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
     ]
   },
+  "eventSample": {
+    "metaData": null,
+    "firstRow": {
+      "id": "a89451e017390dd92631093b19a758c7fbdfb01b3eef19985303addd1f3eb316",
+      "status": "start",
+      "action": "start",
+      "time": "1792768134",
+      "release": "6adb786a417e33237e006492",
+      "tag": "v11"
+    }
+  },
   "buildLogSample": [
     {
-      "_id": "6adb6f320e01dbee0ec1620a",
-      "line": "> Fetching the source code: 0%\n",
+      "_id": "6adb77a938253e6cdf52125d",
+      "line": "\n",
       "stream": "STDOUT",
-      "releaseID": "6adb6f31417e33237efd6113",
-      "createdAt": "2026-10-23T14:29:06.382Z",
+      "releaseID": "6adb77a9ce14a814507a3de5",
+      "createdAt": "2026-10-23T15:05:13.560Z",
       "__v": 0
     },
     {
-      "_id": "6adb6f320e01dbee0ec1620d",
+      "_id": "6adb77a938253e6cdf52125f",
       "line": "> Fetching the source code: 100%\n",
       "stream": "STDOUT",
-      "releaseID": "6adb6f31417e33237efd6113",
-      "createdAt": "2026-10-23T14:29:06.397Z",
+      "releaseID": "6adb77a9ce14a814507a3de5",
+      "createdAt": "2026-10-23T15:05:13.566Z",
       "__v": 0
     }
   ]
