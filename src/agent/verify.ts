@@ -51,6 +51,7 @@ const PCT_FIELDS = /pct|cpu\./i;
 /** Plain-Persian names for the event / log patterns the playbooks verify against. */
 const MATCH_FA: [RegExp, string][] = [
   [/OOMKill/, 'بسته شدن برنامه به‌خاطر کمبود رم'],
+  [/^Exited$/, 'بسته شدن ناگهانی برنامه'],
   [/BackOff|CrashLoop/, 'کرش و راه‌اندازی پشت‌سرهم'],
   [/ECONNREFUSED|ETIMEDOUT/, 'خطای اتصال به دیتابیس'],
   [/ENOSPC/, 'پر شدن دیسک'],

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { fakeClient, fakeContext } from '../../test-utils/fake-liara';
 import { collectEvidence } from '../composite/collect-evidence';
-import { pickRollbackTarget } from '../liara/deploy';
+import { currentReleaseId, pickRollbackTarget } from '../liara/deploy';
 
 const MB = 1024 * 1024;
 const ns = (iso: string) => `${Date.parse(iso)}000000`;
@@ -23,6 +23,17 @@ describe('pickRollbackTarget', () => {
     expect(pickRollbackTarget({ releases, currentRelease: 'r3' }, 'r0')?._id).toBe('r0');
     expect(pickRollbackTarget({ releases: [releases[0]!], currentRelease: 'r3' })).toBeNull();
   });
+  it('ignores ENV_UPDATE releases (env changes reuse the code) and reads the platform from projectType [probe 21j]', () => {
+    const real = [
+      { _id: 'e5', type: 'ENV_UPDATE', projectType: 'node', state: 'READY', createdAt: '2026-10-22T12:10:00Z', tag: 'v5' },
+      { _id: 'e4', type: 'ENV_UPDATE', projectType: 'node', state: 'READY', createdAt: '2026-10-22T12:05:00Z', tag: 'v4' },
+      { _id: 'd3', type: 'DEPLOY', projectType: 'node', state: 'READY', createdAt: '2026-10-22T12:00:00Z', tag: 'v3' },
+      { _id: 'd2', type: 'DEPLOY', projectType: 'node', state: 'READY', createdAt: '2026-10-22T11:00:00Z', tag: 'v2' },
+    ];
+    expect(currentReleaseId({ releases: real, currentRelease: 'e5' })).toBe('d3');
+    expect(pickRollbackTarget({ releases: real, currentRelease: 'e5' })?._id).toBe('d2');
+  });
+
   it('never returns to a release we already rolled back from', () => {
     expect(pickRollbackTarget({ releases, currentRelease: 'r3' }, undefined, ['r1'])?._id).toBe('r0');
   });

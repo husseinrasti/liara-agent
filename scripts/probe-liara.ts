@@ -151,6 +151,7 @@ async function main() {
   await readLogs(rec, facts, name, 'afterDeploy', createdAtMs);
 
   // 17. Public health check (not the Liara API). CLI: `.iran.liara.run` for old-infra apps (no network), else `.liara.run`.
+  process.stderr.write(`… 17-health GET ${appUrl(name, cfg.liara.publicUrlSuffix)} (retries for up to 2.5 min)\n`);
   facts.health = await healthCheck(appUrl(name, cfg.liara.publicUrlSuffix), 120_000);
   if (facts.health.status !== 200) {
     const alt = await healthCheck(appUrl(name, '.iran.liara.run'), 30_000);
@@ -250,8 +251,8 @@ async function readEvents(rec: Recorder, facts: ProbeFacts, P: string, phase: st
   facts.events[`${phase}Ms`] = { status: ms?.status ?? null, rows: eventRows(ms) };
   facts.events[`${phase}NoParams`] = { status: none?.status ?? null, rows: eventRows(none) };
   for (const res of [s, ms, none]) {
-    const d = (res?.body as AnyJson)?.data?.find((x: AnyJson) => x?.values?.length);
-    if (d) facts.eventSample = { metaData: d.metaData, firstRow: d.values[0] };
+    const d = (res?.body as AnyJson)?.data?.find((x: AnyJson) => x?.values?.length || x?.action);
+    if (d) facts.eventSample = d.values ? { metaData: d.metaData, firstRow: d.values[0] } : { metaData: null, firstRow: d };
   }
 }
 
@@ -385,7 +386,7 @@ async function probeDomain(rec: Recorder, facts: ProbeFacts, name: string, proje
   if (!id) return;
   const check = await rec.call('22c-domain-check', 'Domain check', { path: `/v1/domains/${id}/check` });
   facts.domain.checkStatus = check?.status ?? null;
-  facts.domain.cname = (check?.body as AnyJson)?.domain?.CNameRecord ?? found?.CNameRecord;
+  facts.domain.cname = (check?.body as AnyJson)?.domain?.project?.network?.node?.host ?? null;
   const del = await rec.call('22d-domain-delete', 'Delete domain', { method: 'DELETE', path: `/v1/domains/${id}` });
   facts.domain.deleteStatus = del?.status ?? null;
 }

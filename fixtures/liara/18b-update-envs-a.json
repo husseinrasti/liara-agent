@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/projects/update-envs",
+    "body": {
+      "project": "liara-agent-probe-u875",
+      "variables": [
+        {
+          "key": "PROBE_A",
+          "value": "1"
+        }
+      ]
+    }
+  },
+  "status": 201,
+  "durationMs": 270,
+  "body": {
+    "message": "success"
+  }
+}

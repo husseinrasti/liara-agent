@@ -1,0 +1,16 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v2/projects/liara-agent-probe-u875/releases",
+    "body": {
+      "sourceID": "f4f97213-a7f0-42e1-a06c-f3e682205393.tar.gz",
+      "port": 3000,
+      "type": "node"
+    }
+  },
+  "status": 201,
+  "durationMs": 572,
+  "body": {
+    "releaseID": "6adb6f31417e33237efd6113"
+  }
+}

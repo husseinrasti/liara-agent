@@ -4,7 +4,7 @@
     "path": "/v1/billing"
   },
   "status": 200,
-  "durationMs": 113,
+  "durationMs": 111,
   "body": {
     "user": {
       "balance": 1000000,

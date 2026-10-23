@@ -3,18 +3,16 @@
     "method": "POST",
     "path": "/v1/projects",
     "body": {
-      "name": "liara-agent-probe-psow",
+      "name": "liara-agent-probe-u875",
       "planID": "small-g2",
       "platform": "node",
-      "bundlePlanID": "basic"
+      "bundlePlanID": "basic",
+      "network": "6a88aa024b04500f8a0cca84"
     }
   },
-  "status": 400,
-  "durationMs": 110,
+  "status": 200,
+  "durationMs": 1791,
   "body": {
-    "statusCode": 400,
-    "error": "Bad Request",
-    "message": "g2_plan_unavailable",
-    "data": null
+    "projectID": "6adb6e22fc09ae5c3cfe4ccd"
   }
 }

@@ -81,3 +81,43 @@ describe('normalizeRange', () => {
     ]);
   });
 });
+
+describe('normalizeEvents — flat container events (new infrastructure) [probe 07a]', () => {
+  const raw = {
+    data: [
+      { id: '2d074edf17615bdd', status: 'start', action: 'start', time: '1792765519', release: 'r1', tag: 'v1' },
+      { id: '2d074edf17615bdd', status: 'create', action: 'create', time: '1792765517', release: 'r1', tag: 'v1' },
+      { id: '2d074edf17615bdd', status: 'oom', action: 'oom', time: '1792765600', release: 'r1', tag: 'v1' },
+      { id: '2d074edf17615bdd', status: 'die', action: 'die', time: '1792765601', release: 'r1', tag: 'v1', exitCode: '137' },
+    ],
+  };
+
+  it('maps actions to the reasons the playbooks use, sorted by time', () => {
+    const events = normalizeEvents(raw);
+    expect(events.map((e) => e.reason)).toEqual(['Created', 'Started', 'OOMKilled', 'Exited']);
+    expect(events[0]!.ts).toBe(new Date(1792765517 * 1000).toISOString());
+    expect(events[2]).toMatchObject({ type: 'Warning', severity: 'error', message: 'oom (v1)' });
+    expect(events[3]).toMatchObject({ type: 'Warning', severity: 'warning', message: 'die (v1) exit code 137 — exited on its own' });
+    expect(events[1]).toMatchObject({ type: 'Normal', severity: 'info' });
+  });
+});
+
+describe('normalizeEvents — die classification', () => {
+  const ev = (id: string, action: string, time: number) => ({ id, status: action, action, time: String(time), release: 'r', tag: 'v1' });
+
+  it('restart and deploy (kill → die → stop) is a planned stop [probe 07a-late]', () => {
+    const events = normalizeEvents({ data: [ev('aaa', 'kill', 100), ev('aaa', 'die', 101), ev('aaa', 'stop', 101), ev('bbb', 'create', 101), ev('bbb', 'start', 103)] });
+    expect(events.filter((e) => e.applet === 'aaa').map((e) => e.reason)).toEqual(['Killed', 'Stopped', 'Stopped']);
+    expect(events.some((e) => e.reason === 'Exited')).toBe(false);
+  });
+
+  it('a die followed by a start of the same container is a crash', () => {
+    const events = normalizeEvents({ data: [ev('aaa', 'start', 100), ev('aaa', 'die', 110), ev('aaa', 'start', 121), ev('aaa', 'die', 131)] });
+    expect(events.map((e) => e.reason)).toEqual(['Started', 'Exited', 'Started', 'Died']);
+    expect(events[1]).toMatchObject({ type: 'Warning', severity: 'warning' });
+  });
+
+  it('a lone die (list may be truncated) stays neutral', () => {
+    expect(normalizeEvents({ data: [ev('aaa', 'die', 100), ev('aaa', 'destroy', 240)] }).map((e) => e.reason)).toEqual(['Died', 'Destroyed']);
+  });
+});

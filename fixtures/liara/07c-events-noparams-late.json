@@ -1,0 +1,108 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/projects/liara-agent-probe-u875/events"
+  },
+  "status": 200,
+  "durationMs": 231,
+  "body": {
+    "data": [
+      {
+        "id": "eb8855e2121c8762c507428f17c778ab22b21871092ae6beab5baeb672656d0c",
+        "status": "start",
+        "action": "start",
+        "time": "1792765966",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "eb8855e2121c8762c507428f17c778ab22b21871092ae6beab5baeb672656d0c",
+        "status": "create",
+        "action": "create",
+        "time": "1792765964",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "die",
+        "action": "die",
+        "time": "1792765964",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "stop",
+        "action": "stop",
+        "time": "1792765964",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "kill",
+        "action": "kill",
+        "time": "1792765963",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "201a9713e34f25704343b9300809ad96ca1f2bd4f40ea665e17b431ee0d8eb4b",
+        "status": "destroy",
+        "action": "destroy",
+        "time": "1792765950",
+        "release": "6adb6ec77b39ae0264e66ac9",
+        "tag": "v2"
+      },
+      {
+        "id": "4d275df9d58073341fdb9b872339792ae353854dfe97df2290bfeb51de5fa719",
+        "status": "die",
+        "action": "die",
+        "time": "1792765950",
+        "release": "6adb6f31417e33237efd6113",
+        "tag": "v3"
+      },
+      {
+        "id": "4d275df9d58073341fdb9b872339792ae353854dfe97df2290bfeb51de5fa719",
+        "status": "stop",
+        "action": "stop",
+        "time": "1792765950",
+        "release": "6adb6f31417e33237efd6113",
+        "tag": "v3"
+      },
+      {
+        "id": "4d275df9d58073341fdb9b872339792ae353854dfe97df2290bfeb51de5fa719",
+        "status": "kill",
+        "action": "kill",
+        "time": "1792765949",
+        "release": "6adb6f31417e33237efd6113",
+        "tag": "v3"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "start",
+        "action": "start",
+        "time": "1792765936",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "1b745267ab1b5d73c7f11329173099f5bae7bb9fd677eef85a77204bc6782733",
+        "status": "create",
+        "action": "create",
+        "time": "1792765934",
+        "release": "6adb6fe872aa39a87aaf1a41",
+        "tag": "v6"
+      },
+      {
+        "id": "201a9713e34f25704343b9300809ad96ca1f2bd4f40ea665e17b431ee0d8eb4b",
+        "status": "die",
+        "action": "die",
+        "time": "1792765809",
+        "release": "6adb6ec77b39ae0264e66ac9",
+        "tag": "v2"
+      }
+    ]
+  }
+}

@@ -35,6 +35,22 @@ export async function deleteDomain(c: LiaraClient, domainId: string): Promise<vo
 }
 
 /** True when Liara reports the domain as verified/connected. */
+export interface DnsTarget {
+  /** CNAME target: the app's node host, e.g. sabalan.liara.cloud */
+  host: string | null;
+  /** A-record target for apex domains */
+  ip: string | null;
+}
+
+/**
+ * Where the domain's DNS must point [probe 22c]: `project.network.node {host, IP}` in the check
+ * response. `CNameRecord` / `acmeRecord` are statuses (INVALID, …), not targets.
+ */
+export function dnsTargetOf(d: unknown): DnsTarget {
+  const node = (d as { project?: { network?: { node?: { host?: unknown; IP?: unknown } } } } | null)?.project?.network?.node;
+  return { host: typeof node?.host === 'string' && node.host ? node.host : null, ip: typeof node?.IP === 'string' && node.IP ? node.IP : null };
+}
+
 export function isDomainVerified(d: Pick<Domain, 'status'>): boolean {
   return /^(ACTIVE|VERIFIED|OK|CONNECTED)$/i.test(d.status ?? '');
 }

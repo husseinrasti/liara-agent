@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { badReleases, linkSourceRelease, markReleaseBad, recordSource, sourceForRelease, sourcesFor } from '../../db/repo';
 import type { DeployStage } from '../../events';
 import { getReleases } from '../../liara/endpoints/apps';
-import { deployRelease, MAX_SOURCE_BYTES, RELEASE_READY, ReleaseWaitError, uploadSource, waitForRelease } from '../../liara/endpoints/deploy';
+import { deployRelease, isCodeRelease, MAX_SOURCE_BYTES, RELEASE_READY, ReleaseWaitError, uploadSource, waitForRelease } from '../../liara/endpoints/deploy';
 import { dateTimeFa } from '../../liara/time';
 import type { Release, ReleasesPage } from '../../liara/types';
 import { appNameSchema, appUrlFor, clip, limitation, ok } from '../helpers';
@@ -15,6 +15,7 @@ import { verifyAppHealthy } from './checks';
 
 const RELEASE_STATE_FA: Record<string, string> = {
   QUEUED: 'در صف ساخت',
+  PENDING: 'در صف ساخت',
   BUILDING: 'در حال ساخت (بیلد)',
   PUSHING: 'در حال آماده‌سازی ایمیج',
   DEPLOYING: 'در حال اجرا روی سرور',
@@ -152,8 +153,12 @@ export const deployReleaseTool = defineTool({
 
 const newestFirst = (page: Pick<ReleasesPage, 'releases'>) => [...page.releases].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 
+/** The code release running now: the current release, or the deploy under it when the current one is an ENV_UPDATE. */
 export function currentReleaseId(page: Pick<ReleasesPage, 'releases' | 'currentRelease'>): string | undefined {
-  return page.currentRelease ?? newestFirst(page).find((r) => RELEASE_READY.test(r.state))?._id;
+  const sorted = newestFirst(page);
+  const current = sorted.find((r) => r._id === page.currentRelease) ?? sorted.find((r) => RELEASE_READY.test(r.state));
+  if (!current || isCodeRelease(current)) return current?._id ?? page.currentRelease ?? undefined;
+  return sorted.find((r) => isCodeRelease(r) && RELEASE_READY.test(r.state) && (r.createdAt ?? '') <= (current.createdAt ?? ''))?._id;
 }
 
 /** Latest READY release older than the current one (or `toReleaseId`), skipping releases we already rolled back from. */
@@ -163,7 +168,7 @@ export function pickRollbackTarget(page: Pick<ReleasesPage, 'releases' | 'curren
   const currentId = currentReleaseId(page);
   const current = sorted.find((r) => r._id === currentId);
   return (
-    sorted.find((r) => r._id !== currentId && !exclude.includes(r._id) && RELEASE_READY.test(r.state) && (!current?.createdAt || (r.createdAt ?? '') < current.createdAt)) ?? null
+    sorted.find((r) => r._id !== currentId && isCodeRelease(r) && !exclude.includes(r._id) && RELEASE_READY.test(r.state) && (!current?.createdAt || (r.createdAt ?? '') < current.createdAt)) ?? null
   );
 }
 
@@ -191,7 +196,8 @@ export const rollbackReleaseTool = defineTool({
     const target = pickRollbackTarget(page, toReleaseId, badReleases(ctx.db, appName));
     if (!target) return limitation('نسخه‌ی سالم قبلی برای برگشت پیدا نشد.', 'no READY release before the current one');
     const from = currentReleaseId(page);
-    const platform = target.type ?? target.projectType ?? page.platform ?? 'node';
+    // `type` is the release kind (DEPLOY / ENV_UPDATE); the platform is `projectType` [probe 21j].
+    const platform = target.projectType ?? page.platform ?? 'node';
     const port = target.port ?? defaultPort(platform);
     const row = sourceForRelease(ctx.db, appName, target._id);
     const sourceID = row?.sourceID ?? target.sourceID ?? undefined;

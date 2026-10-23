@@ -1,0 +1,68 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/projects/liara-agent-probe-u875/events"
+  },
+  "status": 200,
+  "durationMs": 949,
+  "body": {
+    "data": [
+      {
+        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "status": "die",
+        "action": "die",
+        "time": "1792765713",
+        "release": "6adb6e2872aa39a87aae92be",
+        "tag": "v1"
+      },
+      {
+        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "status": "stop",
+        "action": "stop",
+        "time": "1792765713",
+        "release": "6adb6e2872aa39a87aae92be",
+        "tag": "v1"
+      },
+      {
+        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "status": "kill",
+        "action": "kill",
+        "time": "1792765712",
+        "release": "6adb6e2872aa39a87aae92be",
+        "tag": "v1"
+      },
+      {
+        "id": "201a9713e34f25704343b9300809ad96ca1f2bd4f40ea665e17b431ee0d8eb4b",
+        "status": "start",
+        "action": "start",
+        "time": "1792765700",
+        "release": "6adb6ec77b39ae0264e66ac9",
+        "tag": "v2"
+      },
+      {
+        "id": "201a9713e34f25704343b9300809ad96ca1f2bd4f40ea665e17b431ee0d8eb4b",
+        "status": "create",
+        "action": "create",
+        "time": "1792765696",
+        "release": "6adb6ec77b39ae0264e66ac9",
+        "tag": "v2"
+      },
+      {
+        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "status": "start",
+        "action": "start",
+        "time": "1792765519",
+        "release": "6adb6e2872aa39a87aae92be",
+        "tag": "v1"
+      },
+      {
+        "id": "2d074edf17615bddc125d2c807113bfbfee10525df235568eeecb595a9591a58",
+        "status": "create",
+        "action": "create",
+        "time": "1792765517",
+        "release": "6adb6e2872aa39a87aae92be",
+        "tag": "v1"
+      }
+    ]
+  }
+}

@@ -93,7 +93,7 @@ describe('Watcher', () => {
 describe('domain flow', () => {
   it('add_domain: IRNIC limitation, tracked, then verified by the watcher with an SSL suggestion', async () => {
     let verified = false;
-    const domain = () => ({ _id: 'd1', name: 'myshop.ir', status: verified ? 'ACTIVE' : 'PENDING', certificatesStatus: 'PENDING', CNameRecord: 'shop.liara.run' });
+    const domain = () => ({ _id: 'd1', name: 'myshop.ir', status: verified ? 'ACTIVE' : 'PENDING', certificatesStatus: 'PENDING', CNameRecord: verified ? 'VALID' : 'INVALID', project: { _id: 'p1', network: { node: { host: 'sabalan.liara.cloud', IP: '185.208.180.12' } } } });
     const { rt, session, events, watcher } = watched(
       { autoApprove: true },
       {
@@ -110,8 +110,8 @@ describe('domain flow', () => {
     expect(events.find((e) => e.type === 'domain_steps')).toMatchObject({
       domain: 'myshop.ir',
       records: [
-        { type: 'ALIAS / ANAME', name: '@', value: 'shop.liara.run' },
-        { type: 'CNAME', name: 'www', value: 'shop.liara.run' },
+        { type: 'A', name: '@', value: '185.208.180.12' },
+        { type: 'CNAME', name: 'www', value: 'sabalan.liara.cloud' },
       ],
       stepsFa: expect.arrayContaining([expect.stringContaining('irnic.ir')]),
     });

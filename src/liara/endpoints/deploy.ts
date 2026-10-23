@@ -53,6 +53,12 @@ export async function getBuildLogs(c: LiaraClient, releaseID: string, since?: st
 export const RELEASE_READY = /^(READY|SUCCESS|DEPLOYED)$/i;
 export const RELEASE_FAILED = /FAIL|CANCEL|ERROR|TIMEOUT|TIMEDOUT|UNHEALTHY/i;
 
+/**
+ * A release that carries code. Every env change also creates a READY release of kind `ENV_UPDATE`
+ * that reuses the previous image [probe 18/21j]; `type` is the kind, the platform is `projectType`.
+ */
+export const isCodeRelease = (r: { type?: string | null }) => !r.type || /^DEPLOY$/i.test(r.type);
+
 export class ReleaseWaitError extends Error {
   override name = 'ReleaseWaitError';
   constructor(

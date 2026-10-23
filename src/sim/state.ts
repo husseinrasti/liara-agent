@@ -14,6 +14,8 @@ export interface SimRelease {
   tag: string;
   chaos?: ChaosMode;
   requiredEnv?: string;
+  /** DEPLOY (code) or ENV_UPDATE (every env change re-releases the same code) [probe] */
+  kind?: 'DEPLOY' | 'ENV_UPDATE';
   /** liara.json disks mounted by this release */
   disks?: { name: string; mountTo: string }[];
   failLines?: string[];
@@ -147,6 +149,20 @@ export class SimState {
     this.restart(app);
   }
 
+  /** update-envs like the real API: replaces the set and creates a READY ENV_UPDATE release on the same code [probe 18/21j]. */
+  updateEnvs(name: string, variables: { key: string; value: string }[]): void {
+    const app = this.apps.get(name);
+    if (!app) return;
+    const current = app.releases.find((r) => r._id === app.current);
+    if (current) {
+      const t = this.now();
+      const r: SimRelease = { ...current, _id: id('rel'), kind: 'ENV_UPDATE', createdAt: t, finishedAt: t, tag: `v${app.releases.length + 1}`, state: 'READY' };
+      app.releases.push(r);
+      app.current = r._id;
+    }
+    this.setEnvsRaw(name, variables);
+  }
+
   /**
    * Reads what the uploaded code would do: chaos.json (baked chaos mode), the
    * acceptance fixtures by package name (liara-agent-fixture-leak|crash), an
@@ -210,13 +226,15 @@ export class SimState {
       _id: d._id,
       name: d.name,
       type: 'PROJECT',
-      project: app ? { _id: app._id, project_id: app.name } : null,
+      project: app ? { _id: app._id, project_id: app.name, network: { _id: 'net1', node: { _id: 'node1', host: 'sabalan.liara.cloud', IP: '185.208.180.12' } } } : null,
       status: active ? 'ACTIVE' : 'PENDING',
       certificatesStatus: ssl ? 'ACTIVE' : 'PENDING',
       redirectTo: null,
       redirectStatus: null,
       created_at: new Date(d.createdAt).toISOString(),
-      CNameRecord: `${d.app}.liara.run`,
+      // statuses like the real API [probe 22c]; the DNS target is project.network.node
+      CNameRecord: active ? 'VALID' : 'INVALID',
+      acmeRecord: ssl ? 'VALID' : 'INVALID',
     };
   }
 }

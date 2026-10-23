@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { addDomain, checkDomain, deleteDomain, enableSsl, isDomainVerified, isSslActive, listDomains } from '../../liara/endpoints/domains';
+import { addDomain, checkDomain, deleteDomain, dnsTargetOf, enableSsl, isDomainVerified, isSslActive, listDomains, type DnsTarget } from '../../liara/endpoints/domains';
 import type { Domain } from '../../liara/types';
 import { appNameSchema, ok } from '../helpers';
 import { defineTool, type ToolContext } from '../registry';
@@ -16,15 +16,17 @@ export function compactDomain(d: Domain) {
     name: d.name,
     status: d.status ?? null,
     certificatesStatus: d.certificatesStatus ?? null,
-    cnameRecord: d.CNameRecord ?? null,
+    /** DNS check status from Liara (INVALID until the record is right) [probe] */
+    cnameStatus: d.CNameRecord ?? null,
+    dnsTarget: dnsTargetOf(d),
     verified: isDomainVerified(d),
     sslActive: isSslActive(d),
   };
 }
 
 /** Step-by-step Persian DNS guidance (IRNIC-specific for .ir); the full walkthrough is in src/knowledge/irnic.md. */
-export function dnsStepsFa(domain: string, cname: string | null): string[] {
-  const target = cname ?? '(مقصدی که لیارا نشان می‌دهد)';
+export function dnsStepsFa(domain: string, target: DnsTarget): string[] {
+  const host = target.host ?? '(مقصدی که لیارا نشان می‌دهد)';
   const apex = domain.split('.').length === 2;
   const steps = domain.endsWith('.ir')
     ? [
@@ -34,37 +36,35 @@ export function dnsStepsFa(domain: string, cname: string | null): string[] {
     : ['وارد پنل شرکتی شوید که دامنه را از آن خریده‌اید (یا سرویس DNS دامنه).'];
   steps.push(
     apex
-      ? `برای ${domain} رکورد ALIAS/ANAME (یا اگر سرویس DNS پشتیبانی نمی‌کند، از DNS لیارا) به ${target} بسازید؛ برای www.${domain} رکورد CNAME به همین مقصد.`
-      : `یک رکورد CNAME برای ${domain} بسازید که به ${target} اشاره کند.`,
+      ? target.ip
+        ? `برای ${domain} یک رکورد A با مقدار ${target.ip} بسازید (اگر DNS شما رکورد ALIAS/ANAME دارد، می‌توانید آن را به ${host} بدهید)؛ برای www.${domain} رکورد CNAME به ${host}.`
+        : `برای ${domain} رکورد ALIAS/ANAME به ${host} بسازید؛ برای www.${domain} رکورد CNAME به همین مقصد.`
+      : `یک رکورد CNAME برای ${domain} بسازید که به ${host} اشاره کند.`,
     'اگر رکورد A یا CNAME قدیمی برای همین نام دارید، حذفش کنید تا تداخل نکند.',
     'تغییرات DNS معمولاً بین ۵ دقیقه تا ۲۴ ساعت طول می‌کشد؛ من هر دقیقه بررسی می‌کنم و وقتی وصل شد خبرتان می‌کنم.',
   );
   return steps;
 }
 
-/** Records to create for the domain: ALIAS/ANAME on the apex (+ www CNAME), or one CNAME for a subdomain. */
-export function dnsRecords(domain: string, cname: string | null): { type: string; name: string; value: string }[] {
-  if (!cname) return [];
+/** Records to create: A (or ALIAS/ANAME) on an apex plus a www CNAME, or one CNAME for a subdomain — all to the app's node. */
+export function dnsRecords(domain: string, target: DnsTarget): { type: string; name: string; value: string }[] {
   const labels = domain.split('.');
-  return labels.length === 2
-    ? [
-        { type: 'ALIAS / ANAME', name: '@', value: cname },
-        { type: 'CNAME', name: 'www', value: cname },
-      ]
-    : [{ type: 'CNAME', name: labels.slice(0, -2).join('.'), value: cname }];
+  if (labels.length > 2) return target.host ? [{ type: 'CNAME', name: labels.slice(0, -2).join('.'), value: target.host }] : [];
+  const apex = target.ip ? { type: 'A', name: '@', value: target.ip } : target.host ? { type: 'ALIAS / ANAME', name: '@', value: target.host } : null;
+  return [...(apex ? [apex] : []), ...(target.host ? [{ type: 'CNAME', name: 'www', value: target.host }] : [])];
 }
 
 const DOMAIN_STATUS_FA: Record<string, string> = { PENDING: 'در انتظار تنظیم DNS', ACTIVE: 'فعال', VERIFIED: 'تأییدشده', FAILED: 'ناموفق' };
 export const domainStatusFa = (s: string | null | undefined) => (s ? (DOMAIN_STATUS_FA[s.toUpperCase()] ?? s) : 'نامشخص');
 
-export function dnsGuideFa(domain: string, cname: string | null): string {
-  return dnsStepsFa(domain, cname)
+export function dnsGuideFa(domain: string, target: DnsTarget): string {
+  return dnsStepsFa(domain, target)
     .map((s, i) => `${i + 1}) ${s}`)
     .join(' ');
 }
 
 export function domainHintFa(d: ReturnType<typeof compactDomain>): string {
-  if (!d.verified) return dnsGuideFa(d.name, d.cnameRecord);
+  if (!d.verified) return dnsGuideFa(d.name, d.dnsTarget);
   if (!d.sslActive) return 'دامنه وصل شده است؛ حالا می‌توان گواهی SSL (https) را فعال کرد.';
   return 'دامنه وصل است و SSL فعال است.';
 }
@@ -90,7 +90,7 @@ export const listDomainsTool = defineTool({
 export const checkDomainTool = defineTool({
   name: 'check_domain',
   title: 'Check domain',
-  description: 'Re-check a domain (by id from list_domains/add_domain): DNS verification, SSL status, CNAME target and a Persian hint about the next step.',
+  description: 'Re-check a domain (by id from list_domains/add_domain): DNS verification, SSL status, the DNS target (app node host/IP) and a Persian hint about the next step.',
   input: z.object({ domainId: z.string().min(1) }),
   risk: 0,
   category: 'domain',
@@ -106,7 +106,7 @@ export const addDomainTool = defineTool({
   name: 'add_domain',
   title: 'Add custom domain',
   description:
-    'Attach a custom domain to the app. Returns the CNAME target and DNS/IRNIC instructions. The user must create the DNS record themselves — the Liara API cannot change IRNIC or external registrar DNS.',
+    'Attach a custom domain to the app. Returns the DNS records to create (A/CNAME to the app\'s node) and DNS/IRNIC instructions. The user must create the DNS record themselves — the Liara API cannot change IRNIC or external registrar DNS.',
   input: z.object({ appName: appNameSchema, domain: domainSchema }),
   risk: 1,
   category: 'domain',
@@ -117,16 +117,19 @@ export const addDomainTool = defineTool({
   }),
   run: async ({ appName, domain }, ctx) => {
     const created = await addDomain(ctx.liara, appName, domain);
-    const d = created ? compactDomain(created) : null;
-    const stepsFa = dnsStepsFa(domain, d?.cnameRecord ?? null);
-    ctx.emit?.({ type: 'domain_steps', appName, domain, records: dnsRecords(domain, d?.cnameRecord ?? null), stepsFa });
+    // The DNS target (the app's node) is only in the check response [probe 22c].
+    const checked = created ? await checkDomain(ctx.liara, created._id).catch(() => null) : null;
+    const d = checked ? compactDomain(checked) : created ? compactDomain(created) : null;
+    const target = d?.dnsTarget ?? { host: null, ip: null };
+    const stepsFa = dnsStepsFa(domain, target);
+    ctx.emit?.({ type: 'domain_steps', appName, domain, records: dnsRecords(domain, target), stepsFa });
     return ok({ ...(d ?? { name: domain }), stepsFa }, `دامنه‌ی ${domain} ثبت شد؛ حالا باید رکورد DNS را تنظیم کنید.`);
   },
   verify: async ({ appName, domain }, _before, ctx) => {
     const d = await findDomain(ctx, appName, domain);
     return {
       ok: Boolean(d),
-      evidence: d ? [`دامنه در لیارا ثبت شد (وضعیت: ${domainStatusFa(d.status)})`, `مقصد رکورد CNAME: ${d.CNameRecord ?? 'نامشخص'}`] : ['دامنه در فهرست دامنه‌های سرویس پیدا نشد'],
+      evidence: d ? [`دامنه در لیارا ثبت شد (وضعیت: ${domainStatusFa(d.status)})`] : ['دامنه در فهرست دامنه‌های سرویس پیدا نشد'],
     };
   },
   verifyDelayMs: 2000,

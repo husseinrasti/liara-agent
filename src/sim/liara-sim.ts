@@ -14,6 +14,36 @@ const notFound = (msg = 'Not Found') => json({ statusCode: 404, error: 'Not Foun
 const ns = (ms: number) => `${Math.floor(ms)}000000`;
 const iso = (ms?: number) => (ms === undefined ? null : new Date(ms).toISOString());
 
+/**
+ * Simulator events in the real new-infrastructure shape [probe 07a]: flat Docker-style container
+ * events. Restart → kill/die/stop + create/start; OOM → oom/die then a start of the same
+ * container (restart policy); crash loop → die then start of the same container.
+ */
+function containerEvents(evs: SimEvent[], release: string | null, tag: string | null) {
+  const out: { id: string; status: string; action: string; time: string; release: string | null; tag: string | null }[] = [];
+  let container = 'c0000000000000';
+  let n = 0;
+  const push = (action: string, t: number) => out.push({ id: container, status: action, action, time: String(Math.floor(t / 1000)), release, tag });
+  for (const e of evs) {
+    if (e.reason === 'Started') {
+      container = `c${String(++n).padStart(13, '0')}`;
+      push('create', e.t - 1000);
+      push('start', e.t);
+    } else if (e.reason === 'Killing' || e.reason === 'Stopping') {
+      push('kill', e.t);
+      push('die', e.t + 500);
+      push('stop', e.t + 600);
+    } else if (e.reason === 'OOMKilled') {
+      push('oom', e.t);
+      push('die', e.t + 200);
+    } else if (e.reason === 'BackOff') {
+      if (!out.length || out[out.length - 1]!.action !== 'die') push('die', e.t - 500);
+      push('start', e.t + 1000);
+    }
+  }
+  return out;
+}
+
 function project(app: SimApp, s: SimState) {
   const spec = planSpec(app.planID);
   const run = s.runState(app);
@@ -87,8 +117,8 @@ export function createLiaraSimulator(opts: { now?: () => number; seed?: boolean;
     if (method === 'POST' && p === '/v1/projects/update-envs') {
       const b = body as { project?: string; variables?: { key: string; value: string }[] };
       if (!b.project || !state.apps.has(b.project)) return notFound('App not found');
-      state.setEnvsRaw(b.project, b.variables ?? []);
-      return json({ message: 'envs updated' });
+      state.updateEnvs(b.project, b.variables ?? []);
+      return json({ message: 'success' }, 201);
     }
     if ((m = /^\/v1\/releases\/([^/]+)$/.exec(p)) && method === 'GET') {
       const f = state.findRelease(m[1]!);
@@ -203,14 +233,15 @@ export function createLiaraSimulator(opts: { now?: () => number; seed?: boolean;
         currentRelease: app.current ?? null,
         readyReleasesCount: app.releases.filter((r) => r.state === 'READY').length,
         platform: app.type,
-        releases: releases.map((r) => ({ _id: r._id, type: r.type, projectType: r.type, state: r.state, port: r.port, client: 'liara-agent', createdAt: iso(r.createdAt), finishedAt: iso(r.finishedAt), tag: r.tag, sourceAvailable: true })),
+        releases: releases.map((r) => ({ _id: r._id, type: r.kind ?? 'DEPLOY', projectType: r.type, state: r.state, port: r.port, client: 'liara-agent', createdAt: iso(r.createdAt), finishedAt: iso(r.finishedAt), tag: r.tag, sourceAvailable: true })),
       });
     }
     if (sub === '/events' && method === 'GET') {
       const start = Number(q.get('start') ?? 0) * 1000 || t - 86_400_000;
       const end = Number(q.get('end') ?? 0) * 1000 || t;
       const evs: SimEvent[] = [...app.lifecycle.filter((e) => e.t >= start && e.t <= end), ...eventsBetween(run, start, end)].sort((a, b) => a.t - b.t);
-      return json(lokiStreams(evs.map((e) => ({ t: e.t, line: JSON.stringify({ reason: e.reason, type: e.type, message: e.message, involvedObject: { name: `${app.name}-7d9f6c-x2k` } }) }))));
+      const release = app.releases.find((r) => r._id === app.current);
+      return json({ data: containerEvents(evs, release?._id ?? null, release?.tag ?? null) });
     }
     if (sub === '/logs' && method === 'GET') {
       const since = Number(q.get('start') ?? q.get('since') ?? 0);

@@ -25,6 +25,7 @@ export class Recorder {
 
   async call(id: string, title: string, init: RequestInit): Promise<RawResponse | null> {
     const method = init.method ?? 'GET';
+    process.stderr.write(`… ${id} ${method} ${init.path}\n`);
     const request = { method, path: init.path, query: init.query, body: init.multipart ? '<multipart>' : init.body };
     try {
       const res = await this.client.requestRaw({ ...init, retries: init.retries ?? 0 });

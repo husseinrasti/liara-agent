@@ -1,0 +1,15 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v2/projects/liara-agent-probe-u875/logs",
+    "query": {
+      "start": 1792765745,
+      "direction": "forward"
+    }
+  },
+  "status": 200,
+  "durationMs": 220,
+  "body": {
+    "data": []
+  }
+}

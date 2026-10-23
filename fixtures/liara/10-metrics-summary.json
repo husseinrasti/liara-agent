@@ -1,0 +1,36 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/projects/liara-agent-probe-u875/metrics/summary"
+  },
+  "status": 200,
+  "durationMs": 208,
+  "body": {
+    "cpuUsage": [
+      {
+        "value": [
+          1792765743,
+          "0.004434655"
+        ],
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.10247522-a7ae-4fc1-a931-db391bd35f5d-DEPLOY"
+      }
+    ],
+    "memoryUsage": [
+      {
+        "value": [
+          1792765743,
+          "24387584"
+        ],
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.00828c62-b1c9-446b-bf09-ce30895c90ef-DEPLOY"
+      },
+      {
+        "value": [
+          1792765743,
+          "23285760"
+        ],
+        "applet": "6adb6e22fc09ae5c3cfe4ccd.1.10247522-a7ae-4fc1-a931-db391bd35f5d-DEPLOY"
+      }
+    ],
+    "disksUsage": []
+  }
+}

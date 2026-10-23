@@ -1,0 +1,16 @@
+id: readonly_fs
+title_fa: "نوشتن روی فایل‌سیستم فقط‌خواندنی"
+category: config
+signals:
+  - { kind: log_regex, match: "EROFS|read-only file system", weight: 0.8 }
+causes_fa:
+  - "برنامه می‌خواهد داخل پوشه‌ی خودش فایل بنویسد (آپلود، پایگاه داده‌ی SQLite، کش)، ولی فایل‌سیستم سرویس‌های جدید لیارا به‌طور پیش‌فرض فقط‌خواندنی است"
+checks_fa:
+  - "خطای EROFS یا read-only file system در لاگ"
+fixes: []
+manual_steps_fa:
+  - "برای فایل‌هایی که باید بمانند یک دیسک بسازید و در liara.json زیر disks به همان پوشه وصلش کنید؛ با create_disk می‌توانم دیسک را بسازم."
+  - "برای فایل‌های موقت از /tmp استفاده کنید، یا در پنل لیارا (تنظیمات سرویس) حالت «فایل‌سیستم فقط‌خواندنی» را خاموش کنید."
+advice_fa: "سرویس‌های جدید لیارا با فایل‌سیستم فقط‌خواندنی ساخته می‌شوند؛ نوشتن فقط روی دیسک‌های متصل و /tmp ممکن است."
+verify:
+  - { kind: no_log, match: "EROFS|read-only file system", withinMinutes: 5 }

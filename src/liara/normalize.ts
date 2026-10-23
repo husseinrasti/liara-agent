@@ -40,9 +40,67 @@ function nested(obj: Record<string, unknown> | null, ...keys: string[]): unknown
  * Flattens the `events` endpoint's Loki-like streams into AppEvent[] (ascending by time).
  * Each row is `[timestamp, line, ...]`; the line may be a JSON-encoded Kubernetes event.
  */
+/** Container (Docker-style) actions on the new infrastructure → the reasons our playbooks use. */
+const ACTION_REASON: Record<string, string> = {
+  oom: 'OOMKilled',
+  die: 'Died',
+  kill: 'Killed',
+  stop: 'Stopped',
+  start: 'Started',
+  create: 'Created',
+  destroy: 'Destroyed',
+  restart: 'Restarted',
+  pause: 'Paused',
+  unpause: 'Unpaused',
+};
+
+/** A flat container event `{status, action, time, release, tag, …}` [probe 07a] → AppEvent. */
+function flatEvent(row: Record<string, unknown>): AppEvent {
+  const action = (asString(row.action) ?? asString(row.status) ?? '').trim();
+  const health = /^health_status:\s*(\w+)/i.exec(action)?.[1];
+  const reason = health ? (health.toLowerCase() === 'unhealthy' ? 'Unhealthy' : 'Healthy') : (ACTION_REASON[action.toLowerCase()] ?? (action || undefined));
+  const exitCode = row.exitCode ?? row.exit_code ?? nested(row, 'attributes', 'exitCode') ?? nested(row, 'Actor', 'Attributes', 'exitCode');
+  const tag = asString(row.tag);
+  const message = [action || reason || 'event', tag ? `(${tag})` : '', exitCode !== undefined ? `exit code ${String(exitCode)}` : ''].filter(Boolean).join(' ');
+  const type = reason === 'OOMKilled' || reason === 'Unhealthy' || (reason === 'Died' && exitCode !== undefined && String(exitCode) !== '0') ? 'Warning' : 'Normal';
+  return {
+    ts: (parseTimestamp(row.time) ?? parseTimestamp(row.timeNano) ?? new Date(0)).toISOString(),
+    type,
+    reason,
+    message,
+    applet: asString(row.id)?.slice(0, 12),
+    severity: eventSeverity(reason, type, message),
+  };
+}
+
+/**
+ * Container `die` events need context [probe 07a-late]: restarts and deploys show `kill → die → stop`
+ * (planned), a crash shows `die` and then a `start` of the same container (restart policy) or follows
+ * an `oom`. Anything else stays a neutral "Died" — the list can be truncated, so no alarm on it.
+ */
+function classifyDies(events: AppEvent[]): AppEvent[] {
+  return events.map((e, i) => {
+    if (e.reason !== 'Died' || !e.applet) return e;
+    const t = Date.parse(e.ts);
+    const sameBefore = events.slice(0, i).filter((x) => x.applet === e.applet && t - Date.parse(x.ts) <= 15_000);
+    if (sameBefore.some((x) => x.reason === 'Killed')) return { ...e, reason: 'Stopped', type: 'Normal', severity: 'info' };
+    const restarted = events.slice(i + 1).some((x) => x.applet === e.applet && x.reason === 'Started');
+    if (restarted || sameBefore.some((x) => x.reason === 'OOMKilled')) {
+      const message = `${e.message} — exited on its own${restarted ? ' and was restarted' : ''}`;
+      return { ...e, reason: 'Exited', type: 'Warning', message, severity: eventSeverity('Exited', 'Warning', message) };
+    }
+    return e;
+  });
+}
+
 export function normalizeEvents(raw: EventsRaw | null | undefined): AppEvent[] {
   const out: AppEvent[] = [];
+  const flat: AppEvent[] = [];
   for (const stream of raw?.data ?? []) {
+    if (!Array.isArray(stream.values) && (stream.action || stream.status)) {
+      flat.push(flatEvent(stream as Record<string, unknown>));
+      continue;
+    }
     const meta = (stream.metaData ?? {}) as Record<string, unknown>;
     for (const row of stream.values ?? []) {
       if (!Array.isArray(row) || row.length === 0) continue;
@@ -78,7 +136,8 @@ export function normalizeEvents(raw: EventsRaw | null | undefined): AppEvent[] {
       });
     }
   }
-  return out.sort((a, b) => a.ts.localeCompare(b.ts));
+  const sortedFlat = classifyDies(flat.sort((a, b) => a.ts.localeCompare(b.ts)));
+  return [...out, ...sortedFlat].sort((a, b) => a.ts.localeCompare(b.ts));
 }
 
 /**

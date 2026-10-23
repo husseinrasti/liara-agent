@@ -1,0 +1,151 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v2/projects/liara-agent-probe-u875/logs",
+    "query": {
+      "start": 1792765134,
+      "direction": "backward"
+    }
+  },
+  "status": 200,
+  "durationMs": 266,
+  "body": {
+    "data": [
+      {
+        "metaData": {
+          "releaseId": "6adb6fe872aa39a87aaf1a41"
+        },
+        "values": [
+          [
+            "1792765967738806307",
+            "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
+          ],
+          [
+            "1792765967577033046",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ],
+          [
+            "1792765967576993204",
+            "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
+          ],
+          [
+            "1792765967576941590",
+            "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
+          ],
+          [
+            "1792765967576820052",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ]
+        ]
+      },
+      {
+        "metaData": {
+          "releaseId": "6adb6f31417e33237efd6113"
+        },
+        "values": [
+          [
+            "1792765797350196909",
+            "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
+          ],
+          [
+            "1792765797159243450",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ],
+          [
+            "1792765797159198421",
+            "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
+          ],
+          [
+            "1792765797159164025",
+            "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
+          ],
+          [
+            "1792765797159033469",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ]
+        ]
+      },
+      {
+        "metaData": {
+          "releaseId": "6adb6fe872aa39a87aaf1a41"
+        },
+        "values": [
+          [
+            "1792765937439419300",
+            "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
+          ],
+          [
+            "1792765937260870495",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ],
+          [
+            "1792765937260780960",
+            "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
+          ],
+          [
+            "1792765937260737066",
+            "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
+          ],
+          [
+            "1792765937260584078",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ]
+        ]
+      },
+      {
+        "metaData": {
+          "releaseId": "6adb6ec77b39ae0264e66ac9"
+        },
+        "values": [
+          [
+            "1792765701061053982",
+            "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
+          ],
+          [
+            "1792765700903394310",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ],
+          [
+            "1792765700903354668",
+            "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
+          ],
+          [
+            "1792765700903305620",
+            "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
+          ],
+          [
+            "1792765700903187995",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ]
+        ]
+      },
+      {
+        "metaData": {
+          "releaseId": "6adb6e2872aa39a87aae92be"
+        },
+        "values": [
+          [
+            "1792765519814760374",
+            "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
+          ],
+          [
+            "1792765519661652065",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ],
+          [
+            "1792765519661612269",
+            "{\"type\":\"stdout\",\"_entry\":\"> node index.js\"}"
+          ],
+          [
+            "1792765519661557590",
+            "{\"type\":\"stdout\",\"_entry\":\"> liara-agent-probe@1.0.0 start\"}"
+          ],
+          [
+            "1792765519661429383",
+            "{\"type\":\"stdout\",\"_entry\":\"\"}"
+          ]
+        ]
+      }
+    ]
+  }
+}

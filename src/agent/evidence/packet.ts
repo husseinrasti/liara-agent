@@ -21,10 +21,12 @@ export interface EvidencePacket {
     url: string;
     currentRelease: { id: string; tag: string | null; state: string; createdAt: string | null; ageMinutes: number | null } | null;
     lastDeployAgeMinutes: number | null;
+    /** set when env vars changed after the last code deploy (each change is an ENV_UPDATE release) */
+    lastEnvUpdateAgeMinutes?: number | null;
   } | null;
   health: { status: number; ok: boolean; latencyMs: number | null; error?: string; sampledAt: string } | null;
   applets: { name: string; state: string | null; reason: string | null }[];
-  releases: { id: string; state: string; tag: string | null; createdAt: string | null; port?: number | null; failReason?: string }[];
+  releases: { id: string; kind?: string | null; state: string; tag: string | null; createdAt: string | null; port?: number | null; failReason?: string }[];
   events: {
     windowMinutes: number;
     byReason: Record<string, number>;

@@ -5,8 +5,9 @@ import { getApp, getApplets, getReleases } from '../../liara/endpoints/apps';
 import { getEvents } from '../../liara/endpoints/events';
 import { getLogs } from '../../liara/endpoints/logs';
 import { getCpu, getMemory, getMetricsSummary, getNetRx, getNetTx } from '../../liara/endpoints/metrics';
+import { LiaraApiError } from '../../liara/errors';
 import type { AppEvent, Release } from '../../liara/types';
-import { appNameSchema, clip, faNum, minutesAgo, ok } from '../helpers';
+import { appNameSchema, clip, faNum, limitation, minutesAgo, ok } from '../helpers';
 import { defineTool, type ToolContext } from '../registry';
 import { planInfo } from './apps';
 
@@ -95,7 +96,17 @@ export const getAppAppletsTool = defineTool({
   category: 'read',
   describeFa: ({ appName }) => `بررسی نمونه‌های در حال اجرای ${appName}`,
   run: async ({ appName }, ctx) => {
-    const applets = await getApplets(ctx.liara, appName);
+    const applets = await getApplets(ctx.liara, appName).catch((err: unknown) => {
+      if (err instanceof LiaraApiError && err.status >= 500) return null;
+      throw err;
+    });
+    // New-infrastructure apps answer 500 here [probe 08/19b/21k].
+    if (!applets) {
+      return limitation(
+        'در زیرساخت جدید لیارا وضعیت نمونه‌ها از API در دسترس نیست؛ به‌جایش از رویدادهای کانتینر، مصرف منابع و بررسی سلامت سایت استفاده می‌کنم.',
+        'applets endpoint returns 500 on the new infrastructure',
+      );
+    }
     const data = applets.map((a) => ({ name: a.name, state: a.state ?? null, reason: a.reason ?? null, releaseTag: a.release?.tag ?? null, ts: a.timestamp ?? null }));
     const running = data.filter((a) => /running|ready/i.test(a.state ?? '')).length;
     return ok(data, data.length ? `${running} از ${data.length} نمونه در حال اجراست.` : 'هیچ نمونه‌ی در حال اجرایی وجود ندارد (سرویس خاموش است یا هنوز منتشر نشده).');
@@ -110,7 +121,8 @@ export function compactRelease(r: Release) {
     createdAt: r.createdAt ?? null,
     finishedAt: r.finishedAt ?? null,
     port: r.port ?? null,
-    platform: r.type ?? r.projectType ?? null,
+    kind: r.type ?? null,
+    platform: r.projectType ?? null,
     commitMessage: r.gitInfo?.message ?? null,
     sourceAvailable: r.sourceAvailable ?? null,
   };

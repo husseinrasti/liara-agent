@@ -1,0 +1,11 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/projects/liara-agent-probe-u875/applets"
+  },
+  "status": 500,
+  "durationMs": 241,
+  "body": {
+    "error": "Internal Server Error"
+  }
+}

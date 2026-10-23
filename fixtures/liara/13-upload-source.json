@@ -1,0 +1,12 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v2/projects/liara-agent-probe-u875/sources",
+    "body": "<multipart>"
+  },
+  "status": 200,
+  "durationMs": 290,
+  "body": {
+    "sourceID": "f4f97213-a7f0-42e1-a06c-f3e682205393.tar.gz"
+  }
+}

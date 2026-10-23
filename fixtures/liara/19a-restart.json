@@ -1,0 +1,8 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/projects/liara-agent-probe-u875/actions/restart"
+  },
+  "status": 200,
+  "durationMs": 241
+}

@@ -5,15 +5,22 @@ import { evaluate } from '../engine';
 import { loadPlaybooks } from '../load';
 
 describe('playbooks', () => {
-  it('loads all 14 valid playbooks', () => {
+  it('loads all 15 valid playbooks', () => {
     const ids = loadPlaybooks().map((p) => p.id).sort();
     expect(ids).toEqual(
-      ['app_stopped', 'build_failed', 'cpu_saturation_slow', 'crash_loop', 'db_unreachable', 'disk_full', 'domain_not_verified', 'healthy', 'high_latency_unknown', 'insufficient_balance', 'missing_env', 'oom_kill', 'port_mismatch', 'recent_deploy_regression'].sort(),
+      ['app_stopped', 'build_failed', 'cpu_saturation_slow', 'crash_loop', 'db_unreachable', 'disk_full', 'domain_not_verified', 'healthy', 'high_latency_unknown', 'insufficient_balance', 'missing_env', 'oom_kill', 'port_mismatch', 'readonly_fs', 'recent_deploy_regression'].sort(),
     );
   });
 });
 
 describe('rule engine', () => {
+  it('EROFS in the logs: readonly_fs with the disk / read-only guidance (new apps default to a read-only root fs) [probe 05]', () => {
+    const packet = withLogs(healthyPacket(), ["Error: EROFS: read-only file system, open '/usr/src/app/uploads/a.png'"]);
+    const top = evaluate(packet, { plans: PLANS }).candidates[0]!;
+    expect(top.playbookId).toBe('readonly_fs');
+    expect(top.manualStepsFa.join(' ')).toContain('disks');
+  });
+
   it('OOM: oom_kill on top with rollback (recent deploy), restart and upgrade fixes', () => {
     const { candidates, signals } = evaluate(oomPacket(), { plans: PLANS });
     const top = candidates[0]!;

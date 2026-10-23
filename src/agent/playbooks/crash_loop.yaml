@@ -4,7 +4,7 @@ category: crash
 threshold: 0.45
 signals:
   - { kind: applet_reason, match: "CrashLoopBackOff|BackOff|Error", weight: 0.5 }
-  - { kind: event_reason, match: "BackOff|CrashLoop", weight: 0.4 }
+  - { kind: event_reason, match: "BackOff|CrashLoop|Exited", weight: 0.4 }
   - { kind: log_regex, match: "Unhandled|uncaughtException|TypeError|ReferenceError|SyntaxError|Traceback|panic:|Exception", weight: 0.3 }
   - kind: expr
     when: "logs.stackTraces.length > 0"
@@ -35,6 +35,6 @@ fixes:
 manual_steps_fa:
   - "خطایی را که در ردپای خطا آمده در کد برطرف کنید و دوباره منتشر کنید."
 verify:
-  - { kind: no_event, match: "BackOff|CrashLoop", withinMinutes: 5 }
+  - { kind: no_event, match: "BackOff|CrashLoop|Exited", withinMinutes: 5 }
   - { kind: health, status: 200 }
 advice_fa: "ردپای خطا نشان می‌دهد کدام خط کد باعث کرش می‌شود؛ اصلاح کد کاری است که فقط شما می‌توانید انجام دهید."

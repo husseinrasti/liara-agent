@@ -144,8 +144,28 @@ export const MetricsSummarySchema = z.looseObject({
 export type MetricsSummary = z.infer<typeof MetricsSummarySchema>;
 
 /** Raw events: same Loki-like stream layout as v2 logs. */
-export const EventsRawSchema = LokiStreamsSchema;
-export type EventsRaw = LokiStreams;
+/**
+ * `GET /v1/projects/{app}/events` → `{data:[…]}`. The new infrastructure returns flat container
+ * events `{id, status, action, time: "<unix s>", release, tag}` [probe 07a]; Loki-like streams
+ * `{metaData, values}` (spec) are still accepted.
+ */
+export const EventsRawSchema = z.looseObject({
+  data: z
+    .array(
+      z.looseObject({
+        metaData: z.record(z.string(), z.unknown()).nullish(),
+        values: z.array(z.array(z.unknown())).nullish(),
+        id: optStr,
+        status: optStr,
+        action: optStr,
+        time: z.union([z.string(), z.number()]).nullish(),
+        release: optStr,
+        tag: optStr,
+      }),
+    )
+    .nullish(),
+});
+export type EventsRaw = z.infer<typeof EventsRawSchema>;
 
 export type EventSeverity = 'info' | 'warning' | 'error';
 export interface AppEvent {

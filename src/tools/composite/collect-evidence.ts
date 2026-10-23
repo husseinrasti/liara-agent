@@ -7,7 +7,7 @@ import { clusterLogs, extractStackTraces, isErrorLine } from '../../agent/eviden
 import { trimPacket, type EvidencePacket } from '../../agent/evidence/packet';
 import { getApp, getApplets, getReleases } from '../../liara/endpoints/apps';
 import { getBalance } from '../../liara/endpoints/account';
-import { getBuildLogs, getReleaseStatus, RELEASE_FAILED } from '../../liara/endpoints/deploy';
+import { getBuildLogs, getReleaseStatus, isCodeRelease, RELEASE_FAILED } from '../../liara/endpoints/deploy';
 import { listDomains } from '../../liara/endpoints/domains';
 import { describeError } from '../../liara/errors';
 import type { AppEvent } from '../../liara/types';
@@ -60,7 +60,9 @@ export async function collectEvidence(ctx: ToolContext, appName: string, windowM
   const page = releases.status === 'fulfilled' ? releases.value : null;
   const currentId = page?.currentRelease ?? null;
   const current = page?.releases.find((r) => r._id === currentId) ?? page?.releases.find((r) => /READY/i.test(r.state)) ?? null;
-  const latest = page?.releases[0] ?? null;
+  // Code deploys only: env changes are ENV_UPDATE releases on top of the same code [probe].
+  const latest = page?.releases.find(isCodeRelease) ?? null;
+  const newest = page?.releases[0] ?? null;
 
   let buildLog: string[] | undefined;
   let latestFailReason: string | undefined;
@@ -93,12 +95,14 @@ export async function collectEvidence(ctx: ToolContext, appName: string, windowM
             ? { id: current._id, tag: current.tag ?? null, state: current.state, createdAt: current.createdAt ?? null, ageMinutes: ageMinutes(ctx, current.createdAt) }
             : null,
           lastDeployAgeMinutes: ageMinutes(ctx, latest?.createdAt),
+          ...(newest && !isCodeRelease(newest) ? { lastEnvUpdateAgeMinutes: ageMinutes(ctx, newest.createdAt) } : {}),
         }
       : null,
     health: h ? { status: h.status, ok: h.ok, latencyMs: h.latencyMs?.avg ?? null, error: h.error, sampledAt: h.sampledAt } : null,
     applets: applets.status === 'fulfilled' ? applets.value.map((a) => ({ name: a.name, state: a.state ?? null, reason: a.reason ?? null })) : [],
     releases: (page?.releases ?? []).map((r) => ({
       id: r._id,
+      kind: r.type ?? null,
       state: r.state,
       tag: r.tag ?? null,
       createdAt: r.createdAt ?? null,

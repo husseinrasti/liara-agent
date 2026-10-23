@@ -1,19 +1,8 @@
 {
-  "ranAt": "2026-10-23T09:59:12.637Z",
-  "appName": "",
+  "ranAt": "2026-10-23T14:28:54.101Z",
+  "appName": "liara-agent-probe-u875",
   "appCreated": false,
-  "createAttempts": [
-    {
-      "body": {
-        "name": "liara-agent-probe-psow",
-        "planID": "small-g2",
-        "platform": "node",
-        "bundlePlanID": "basic"
-      },
-      "status": 400,
-      "message": "g2_plan_unavailable"
-    }
-  ],
+  "createAttempts": [],
   "meTopKeys": [
     "user",
     "team",
@@ -176,7 +165,7 @@
       "cpu": 0.25,
       "diskGB": 2.5,
       "hourlyPriceIRT": 381.94,
-      "monthlyEstimateIRT": 274997,
+      "monthlyEstimateIRT": 275000,
       "available": false,
       "region": "iran",
       "storageClass": "SSD",
@@ -253,7 +242,7 @@
       "cpu": 0.5,
       "diskGB": 5,
       "hourlyPriceIRT": 659.72,
-      "monthlyEstimateIRT": 474998,
+      "monthlyEstimateIRT": 475000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -332,7 +321,7 @@
       "cpu": 1,
       "diskGB": 10,
       "hourlyPriceIRT": 1145.83,
-      "monthlyEstimateIRT": 824998,
+      "monthlyEstimateIRT": 825000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -448,7 +437,7 @@
       "cpu": 1,
       "diskGB": 20,
       "hourlyPriceIRT": 2048.61,
-      "monthlyEstimateIRT": 1474999,
+      "monthlyEstimateIRT": 1475000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -515,7 +504,7 @@
       "cpu": 2,
       "diskGB": 40,
       "hourlyPriceIRT": 3680.55,
-      "monthlyEstimateIRT": 2649996,
+      "monthlyEstimateIRT": 2650000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -582,7 +571,7 @@
       "cpu": 4,
       "diskGB": 80,
       "hourlyPriceIRT": 6388.88,
-      "monthlyEstimateIRT": 4599994,
+      "monthlyEstimateIRT": 4600000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -662,7 +651,7 @@
       "cpu": 8,
       "diskGB": 160,
       "hourlyPriceIRT": 11111.11,
-      "monthlyEstimateIRT": 7999999,
+      "monthlyEstimateIRT": 8000000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -729,7 +718,7 @@
       "cpu": 16,
       "diskGB": 320,
       "hourlyPriceIRT": 19444.44,
-      "monthlyEstimateIRT": 13999997,
+      "monthlyEstimateIRT": 14000000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -796,7 +785,7 @@
       "cpu": 32,
       "diskGB": 640,
       "hourlyPriceIRT": 34166.66,
-      "monthlyEstimateIRT": 24599995,
+      "monthlyEstimateIRT": 24600000,
       "available": true,
       "region": "iran",
       "storageClass": "SSD",
@@ -844,47 +833,294 @@
     }
   ],
   "balance": {
-    "source": "GET /v1/billing → user.balance",
+    "source": "GET /v1/billing → team.balance",
     "value": 1000000
   },
-  "projectDetailKeys": [],
-  "logs": {},
-  "events": {},
-  "metrics": {},
-  "release": {
-    "states": []
+  "projectDetailKeys": [
+    "_id",
+    "project_id",
+    "type",
+    "status",
+    "readOnlyRootFilesystem",
+    "defaultSubdomain",
+    "defaultSubdomainExpired",
+    "keepDefaultSubdomain",
+    "zeroDowntime",
+    "scale",
+    "envs",
+    "planID",
+    "bundlePlanID",
+    "network",
+    "dns",
+    "created_at",
+    "hourlyPrice",
+    "bundleHourlyPrice",
+    "isDeployed",
+    "reservedDiskSpace"
+  ],
+  "logs": {
+    "v2Forward_initial": {
+      "status": 200,
+      "count": 10,
+      "first": "1792765519661429383",
+      "last": "1792765701061053982"
+    },
+    "v2Backward_initial": {
+      "status": 200,
+      "count": 10,
+      "first": "1792765519661429383",
+      "last": "1792765701061053982"
+    },
+    "v1Seconds_initial": {
+      "status": 200,
+      "count": 1,
+      "first": "2026-10-23T14:29:01.093Z",
+      "last": "2026-10-23T14:29:01.093Z"
+    },
+    "v1Ms_initial": {
+      "status": 200,
+      "count": 1,
+      "first": "2026-10-23T14:29:01.318Z",
+      "last": "2026-10-23T14:29:01.318Z"
+    },
+    "v1Iso_initial": {
+      "status": 400,
+      "count": null
+    },
+    "v2Forward_afterDeploy": {
+      "status": 200,
+      "count": 0
+    },
+    "v2Backward_afterDeploy": {
+      "status": 200,
+      "count": 0
+    },
+    "v1Seconds_afterDeploy": {
+      "status": 200,
+      "count": 1,
+      "first": "2026-10-23T14:29:28.541Z",
+      "last": "2026-10-23T14:29:28.541Z"
+    },
+    "v2Forward_late": {
+      "status": 200,
+      "count": 25,
+      "first": "1792765519661429383",
+      "last": "1792765967738806307"
+    },
+    "v2Backward_late": {
+      "status": 200,
+      "count": 25,
+      "first": "1792765519661429383",
+      "last": "1792765967738806307"
+    },
+    "v1Seconds_late": {
+      "status": 200,
+      "count": 1,
+      "first": "2026-10-23T14:33:20.599Z",
+      "last": "2026-10-23T14:33:20.599Z"
+    }
   },
-  "buildLogs": {},
+  "events": {
+    "initialSeconds": {
+      "status": 200,
+      "rows": 0
+    },
+    "initialMs": {
+      "status": 200,
+      "rows": 0
+    },
+    "initialNoParams": {
+      "status": 200,
+      "rows": 0
+    },
+    "lateSeconds": {
+      "status": 200,
+      "rows": 0
+    },
+    "lateMs": {
+      "status": 200,
+      "rows": 0
+    },
+    "lateNoParams": {
+      "status": 200,
+      "rows": 0
+    }
+  },
+  "metrics": {
+    "cpu_seconds_initial": {
+      "status": 200,
+      "series": 2,
+      "points": 7,
+      "firstTs": 1792765559,
+      "lastTs": 1792765739
+    },
+    "cpu_ms_initial": {
+      "status": 503,
+      "series": null,
+      "points": null
+    },
+    "cpu_relative3600_initial": {
+      "status": 428,
+      "series": null,
+      "points": null
+    },
+    "memory_seconds_initial": {
+      "status": 200,
+      "series": 2,
+      "points": 10,
+      "firstTs": 1792765529,
+      "lastTs": 1792765739
+    },
+    "cpu_seconds_late": {
+      "status": 200,
+      "series": 5,
+      "points": 17,
+      "firstTs": 1792765547,
+      "lastTs": 1792765997
+    },
+    "cpu_ms_late": {
+      "status": 503,
+      "series": null,
+      "points": null
+    },
+    "cpu_relative3600_late": {
+      "status": 428,
+      "series": null,
+      "points": null
+    },
+    "memory_seconds_late": {
+      "status": 200,
+      "series": 5,
+      "points": 38,
+      "firstTs": 1792765547,
+      "lastTs": 1792765997
+    },
+    "netRx": {
+      "status": 200,
+      "series": 5,
+      "points": 34,
+      "firstTs": 1792765547,
+      "lastTs": 1792765997
+    },
+    "netTx": {
+      "status": 200,
+      "series": 5,
+      "points": 34,
+      "firstTs": 1792765547,
+      "lastTs": 1792765997
+    }
+  },
+  "release": {
+    "states": [
+      "PENDING",
+      "BUILDING",
+      "READY"
+    ],
+    "releaseID": "6adb6f31417e33237efd6113",
+    "deployBodyAccepted": {
+      "sourceID": "<sourceID>",
+      "port": 3000,
+      "type": "node"
+    },
+    "finalState": "READY",
+    "durationSec": 21,
+    "releaseKeys": [
+      "_id",
+      "type",
+      "imageName",
+      "projectType",
+      "state",
+      "port",
+      "buildArgs",
+      "buildLocation",
+      "buildTimeout",
+      "client",
+      "disks",
+      "finishedAt",
+      "platformConfig",
+      "createdAt",
+      "tag",
+      "sourceAvailable"
+    ]
+  },
+  "buildLogs": {
+    "v2": {
+      "status": 200,
+      "count": 20,
+      "first": "2026-10-23T14:29:06.382Z",
+      "last": "2026-10-23T14:29:08.386Z"
+    },
+    "v2Since": {
+      "status": 200,
+      "count": null
+    }
+  },
   "health": {
-    "url": "",
+    "url": "https://liara-agent-probe-u875.liara.run",
     "status": null,
-    "latencyMs": null,
-    "attempts": 0
+    "latencyMs": 10001,
+    "attempts": 8,
+    "bodySnippet": "The operation was aborted due to timeout"
   },
   "envs": {
-    "semantics": "unknown",
-    "keysBefore": [],
-    "keysAfterA": [],
-    "keysAfterB": []
+    "semantics": "replace",
+    "keysBefore": [
+      "NODE_ENV",
+      "PORT"
+    ],
+    "keysAfterA": [
+      "PROBE_A"
+    ],
+    "keysAfterB": [
+      "PROBE_B"
+    ],
+    "restoreStatus": 201,
+    "keysAfterRestore": [
+      "NODE_ENV",
+      "PORT"
+    ]
   },
   "restart": {
-    "status": null,
+    "status": 200,
     "appletStates": []
   },
   "rollback": {
-    "sourceReuseStatus": null,
-    "candidates": [],
-    "decision": ""
+    "sourceReuseStatus": 201,
+    "candidates": [
+      {
+        "call": "POST /v2/projects/liara-agent-probe-u875/releases",
+        "status": 400,
+        "message": "\"port\" is required"
+      },
+      {
+        "call": "POST /v1/projects/liara-agent-probe-u875/releases/{releaseID}/redeploy",
+        "status": 404
+      },
+      {
+        "call": "POST /v1/projects/liara-agent-probe-u875/releases/{releaseID}/rollback",
+        "status": 404
+      },
+      {
+        "call": "POST /v2/projects/liara-agent-probe-u875/releases/{releaseID}/rollback",
+        "status": 404
+      },
+      {
+        "call": "POST /v2/projects/liara-agent-probe-u875/releases/{releaseID}/redeploy",
+        "status": 404
+      }
+    ],
+    "decision": "no native endpoint; re-release a previous sourceID (sourceIDs are reusable), fall back to re-uploading the stored archive",
+    "sourceReuseFinalState": "READY"
   },
   "domain": {
-    "createStatus": null,
-    "listStatus": null,
-    "checkStatus": null,
-    "deleteStatus": null
+    "createStatus": 201,
+    "listStatus": 200,
+    "checkStatus": 200,
+    "deleteStatus": 200,
+    "name": "probe-r03m02.liara-agent-test.ir",
+    "cname": "INVALID"
   },
-  "errors": [
-    "Could not create the probe app. See the plan list above and re-run with --plan/--bundle."
-  ],
+  "errors": [],
   "bundlePlansSample": {
     "g1": {
       "default": {
@@ -1067,5 +1303,34 @@
         "maxImageLayerSize": 200
       }
     }
-  }
+  },
+  "projectHourlyPrice": 659.72,
+  "projectPlanID": "small-g2",
+  "logLineSample": {
+    "metaData": {
+      "releaseId": "6adb6fe872aa39a87aaf1a41"
+    },
+    "firstRow": [
+      "1792765967738806307",
+      "{\"type\":\"stdout\",\"_entry\":\"probe app listening on port 3000\"}"
+    ]
+  },
+  "buildLogSample": [
+    {
+      "_id": "6adb6f320e01dbee0ec1620a",
+      "line": "> Fetching the source code: 0%\n",
+      "stream": "STDOUT",
+      "releaseID": "6adb6f31417e33237efd6113",
+      "createdAt": "2026-10-23T14:29:06.382Z",
+      "__v": 0
+    },
+    {
+      "_id": "6adb6f320e01dbee0ec1620d",
+      "line": "> Fetching the source code: 100%\n",
+      "stream": "STDOUT",
+      "releaseID": "6adb6f31417e33237efd6113",
+      "createdAt": "2026-10-23T14:29:06.397Z",
+      "__v": 0
+    }
+  ]
 }

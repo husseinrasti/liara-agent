@@ -27,6 +27,9 @@ export async function getLogs(c: LiaraClient, name: string, since: Date, opts: {
       path: `${appPath(name)}/logs`,
       query: { since: formatTime(since, LIARA_TIME_FORMATS.logsSince) },
     });
-    return sortLogs(Array.isArray(lines) ? lines : []);
+    // On the new infrastructure v1 answers with one notice instead of logs [probe 06-logs-v1].
+    return sortLogs((Array.isArray(lines) ? lines : []).filter((l) => !V1_UPGRADE_NOTICE.test(l.message ?? '')));
   }
 }
+
+const V1_UPGRADE_NOTICE = /^Please upgrade your client/i;

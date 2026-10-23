@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/projects/liara-agent-probe-u875/logs",
+    "query": {
+      "since": 1792765745
+    }
+  },
+  "status": 200,
+  "durationMs": 200,
+  "body": [
+    {
+      "type": "stdout",
+      "datetime": "2026-10-23T14:29:28.541Z",
+      "message": "Please upgrade your client using: `npm install -g @liara/cli`"
+    }
+  ]
+}

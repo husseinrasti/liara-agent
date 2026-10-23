@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/projects/liara-agent-probe-u875/metrics/cpu",
+    "query": {
+      "since": 3600
+    }
+  },
+  "status": 428,
+  "durationMs": 140,
+  "body": {
+    "statusCode": 428,
+    "error": "Precondition Required",
+    "message": "The maximum allowed value for since is 7 days.",
+    "data": null
+  }
+}

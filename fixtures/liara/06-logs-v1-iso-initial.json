@@ -1,0 +1,17 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/projects/liara-agent-probe-u875/logs",
+    "query": {
+      "since": "2026-10-23T13:28:56.100Z"
+    }
+  },
+  "status": 400,
+  "durationMs": 145,
+  "body": {
+    "statusCode": 400,
+    "error": "Bad Request",
+    "message": "The `since` parameter must be a number.",
+    "data": null
+  }
+}

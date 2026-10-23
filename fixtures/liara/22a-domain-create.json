@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/domains",
+    "body": {
+      "name": "probe-r03m02.liara-agent-test.ir",
+      "project": "liara-agent-probe-u875",
+      "type": "PROJECT"
+    }
+  },
+  "status": 201,
+  "durationMs": 286,
+  "body": {
+    "domain": {
+      "_id": "6adb702bce14a8145077b2b2"
+    }
+  }
+}

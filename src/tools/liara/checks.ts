@@ -5,7 +5,7 @@ import { healthLineFa, waitForHealthy, type HealthResult } from '../local/http-p
 import { appUrlFor } from '../helpers';
 import type { ToolContext, VerifyOutcome } from '../registry';
 
-export const CRASH_REASON = /OOMKill|BackOff|CrashLoop|Fail|Unhealthy|Evict|Error/i;
+export const CRASH_REASON = /OOMKill|BackOff|CrashLoop|Exited|Fail|Unhealthy|Evict|Error/i;
 
 export async function appletsState(ctx: ToolContext, appName: string) {
   const applets = await getApplets(ctx.liara, appName);
@@ -23,7 +23,7 @@ export async function healthOf(ctx: ToolContext, appName: string, deadlineMs = 4
   return waitForHealthy(appUrlFor(ctx, appName), { deadlineMs, intervalMs: 5000, sleep: ctx.sleep, timeoutMs: 8000, fetchImpl: ctx.httpFetch });
 }
 
-/** Standard "is the app up again?" verification: applets running, no new crash events, HTTP healthy. */
+/** Standard "is the app up again?" verification: applets running (when the API has them), no new crash events, HTTP healthy. */
 export async function verifyAppHealthy(ctx: ToolContext, appName: string, since: Date): Promise<VerifyOutcome> {
   const evidence: string[] = [];
   let ok = true;
@@ -36,9 +36,8 @@ export async function verifyAppHealthy(ctx: ToolContext, appName: string, since:
     const a = applets.value;
     evidence.push(`نمونه‌های در حال اجرا: ${a.running.toLocaleString('fa-IR')} از ${a.applets.length.toLocaleString('fa-IR')}${a.allRunning ? '' : ` (${a.states.join('، ')})`}`);
     if (!a.allRunning) ok = false;
-  } else {
-    evidence.push('وضعیت نمونه‌ها (applets) قابل دریافت نبود');
   }
+  // else: new-infrastructure apps have no applets API (500) [probe]; crash events and HTTP health decide.
   if (crashes.status === 'fulfilled') {
     const reasons = [...new Set(crashes.value.map((e) => e.reason))].join('، ');
     evidence.push(`رویدادهای خرابی بعد از اقدام: ${crashes.value.length.toLocaleString('fa-IR')} بار${reasons ? ` (${reasons})` : ''}`);

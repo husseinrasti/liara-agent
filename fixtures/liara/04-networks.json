@@ -1,0 +1,19 @@
+{
+  "request": {
+    "method": "GET",
+    "path": "/v1/networks"
+  },
+  "status": 200,
+  "durationMs": 106,
+  "body": {
+    "networks": [
+      {
+        "_id": "6a88aa024b04500f8a0cca84",
+        "name": "my-network",
+        "createdAt": "2026-08-21T19:41:54.676Z",
+        "projectCount": 1,
+        "databaseCount": 0
+      }
+    ]
+  }
+}

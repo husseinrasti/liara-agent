@@ -16,7 +16,7 @@ import { computeBaseline, getMemoryKey, setMemoryKey, watchedApps } from './memo
 import { toolContextFor, type AgentRuntime } from './runtime';
 import { eventNameFa } from './verify';
 
-const CRASH = /OOMKill|BackOff|CrashLoop/i;
+const CRASH = /OOMKill|BackOff|CrashLoop|Exited/i;
 const BASELINE_TTL_MS = 60 * 60_000;
 const BALANCE_CHECK_MS = 30 * 60_000;
 

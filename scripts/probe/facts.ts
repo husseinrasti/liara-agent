@@ -132,7 +132,8 @@ export function metricSummary(res: RawResponse | null): MetricSummary {
 export function eventRows(res: RawResponse | null): number | null {
   const data = (res?.body as AnyJson)?.data;
   if (!Array.isArray(data)) return null;
-  return data.reduce((n: number, d: AnyJson) => n + (Array.isArray(d?.values) ? d.values.length : 0), 0);
+  // Loki streams count their values; flat container events (new infrastructure) count as one row each.
+  return data.reduce((n: number, d: AnyJson) => n + (Array.isArray(d?.values) ? d.values.length : d?.action || d?.status ? 1 : 0), 0);
 }
 
 export function envKeys(res: RawResponse | null): string[] {

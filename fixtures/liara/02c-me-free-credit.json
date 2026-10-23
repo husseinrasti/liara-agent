@@ -4,7 +4,7 @@
     "path": "/v1/me/free-credit"
   },
   "status": 200,
-  "durationMs": 247,
+  "durationMs": 206,
   "body": {
     "remainingFreeCredit": 0
   }
