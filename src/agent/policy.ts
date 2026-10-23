@@ -7,6 +7,7 @@
 import { randomUUID } from 'node:crypto';
 import { finishAudit, startAudit } from '../db/repo';
 import { runTool, type ToolDef, type ToolResult } from '../tools/registry';
+import { afterAction } from './hooks';
 import { toolContextFor, type AgentRuntime } from './runtime';
 import type { AgentSession } from './session';
 import { verifyAction, type VerifyResult } from './verify';
@@ -86,6 +87,7 @@ export async function executeAction(
   const auditId = def.risk > 0 ? startAudit(rt.deps.db, { sessionId: session.id, tool: def.name, args: redactedInput(def, input), risk: def.risk }, rt.now()) : null;
   const result = await runTool(def, input, ctx);
   if (auditId !== null) finishAudit(rt.deps.db, auditId, { ok: result.ok, resultSummary: summaryOf(result) }, rt.now());
+  afterAction(rt, session, def.name, input, result);
   if (opts.emitTimeline) {
     session.emit({ type: 'tool_result', callId, tool: def.name, ok: result.ok, summary: summaryOf(result), durationMs: Date.now() - started });
     if (!result.ok && result.limitation) session.emit({ type: 'limitation', message: result.userMessageFa });

@@ -22,13 +22,30 @@ export function compactDomain(d: Domain) {
   };
 }
 
-/** Short Persian DNS guidance; the full IRNIC walkthrough lives in src/knowledge/irnic.md (search_docs). */
+/** Step-by-step Persian DNS guidance (IRNIC-specific for .ir); the full walkthrough is in src/knowledge/irnic.md. */
+export function dnsStepsFa(domain: string, cname: string | null): string[] {
+  const target = cname ?? '(مقصدی که لیارا نشان می‌دهد)';
+  const apex = domain.split('.').length === 2;
+  const steps = domain.endsWith('.ir')
+    ? [
+        'وارد irnic.ir شوید و از بخش «دامنه‌های من» دامنه را باز کنید.',
+        'اگر DNS دامنه دست ایرنیک است، سرورهای نام (NS) را به سرویس DNS خودتان (مثلاً DNS لیارا) تغییر دهید؛ رکوردها آنجا ساخته می‌شوند.',
+      ]
+    : ['وارد پنل شرکتی شوید که دامنه را از آن خریده‌اید (یا سرویس DNS دامنه).'];
+  steps.push(
+    apex
+      ? `برای ${domain} رکورد ALIAS/ANAME (یا اگر سرویس DNS پشتیبانی نمی‌کند، از DNS لیارا) به ${target} بسازید؛ برای www.${domain} رکورد CNAME به همین مقصد.`
+      : `یک رکورد CNAME برای ${domain} بسازید که به ${target} اشاره کند.`,
+    'اگر رکورد A یا CNAME قدیمی برای همین نام دارید، حذفش کنید تا تداخل نکند.',
+    'تغییرات DNS معمولاً بین ۵ دقیقه تا ۲۴ ساعت طول می‌کشد؛ من هر دقیقه بررسی می‌کنم و وقتی وصل شد خبرتان می‌کنم.',
+  );
+  return steps;
+}
+
 export function dnsGuideFa(domain: string, cname: string | null): string {
-  const target = cname ?? '(مقداری که لیارا نشان می‌دهد)';
-  const irnic = domain.endsWith('.ir')
-    ? 'دامنه‌های ‎.ir در irnic.ir ثبت می‌شوند؛ اگر DNS دامنه دست ایرنیک است، ابتدا در بخش مدیریت دامنه، سرورهای نام (NS) را به سرویس DNS خود (مثلاً DNS لیارا) تغییر دهید و رکورد را آنجا بسازید.'
-    : 'در پنل شرکتی که دامنه را از آن خریده‌اید (یا سرویس DNS آن) رکورد را بسازید.';
-  return `یک رکورد CNAME برای ${domain} بسازید که به ${target} اشاره کند (برای دامنه‌ی اصلی بدون www، اگر CNAME مجاز نبود از ALIAS/ANAME استفاده کنید). ${irnic} اعمال تغییرات DNS معمولاً ۵ دقیقه تا ۲۴ ساعت طول می‌کشد.`;
+  return dnsStepsFa(domain, cname)
+    .map((s, i) => `${i + 1}) ${s}`)
+    .join(' ');
 }
 
 export function domainHintFa(d: ReturnType<typeof compactDomain>): string {
@@ -86,8 +103,8 @@ export const addDomainTool = defineTool({
   run: async ({ appName, domain }, ctx) => {
     const created = await addDomain(ctx.liara, appName, domain);
     const d = created ? compactDomain(created) : null;
-    const guideFa = dnsGuideFa(domain, d?.cnameRecord ?? null);
-    return ok({ ...(d ?? { name: domain }), guideFa }, `دامنه‌ی ${domain} ثبت شد؛ حالا باید رکورد DNS را تنظیم کنید.`);
+    const stepsFa = dnsStepsFa(domain, d?.cnameRecord ?? null);
+    return ok({ ...(d ?? { name: domain }), stepsFa }, `دامنه‌ی ${domain} ثبت شد؛ حالا باید رکورد DNS را تنظیم کنید.`);
   },
   verify: async ({ appName, domain }, _before, ctx) => {
     const d = await findDomain(ctx, appName, domain);
