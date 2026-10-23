@@ -56,7 +56,7 @@ export function ApprovalCard({ item, onDecide }: { item: ApprovalItem; onDecide:
         <label className="block space-y-1.5">
           <span className="text-sm text-slate-700">{fa.approval.typeName(e.requiresTypedName!)}</span>
           <input
-            dir="ltr"
+            dir="ltr" lang="en"
             value={typed}
             onChange={(ev) => setTyped(ev.target.value)}
             placeholder={e.requiresTypedName}

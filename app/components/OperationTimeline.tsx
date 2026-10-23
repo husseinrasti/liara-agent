@@ -41,7 +41,7 @@ function Row({ row }: { row: TimelineRow }) {
             </button>
           )}
           {open && (
-            <pre dir="ltr" className="mt-1 max-h-64 overflow-auto rounded-lg bg-slate-50 p-2 text-left text-[11px] leading-5 text-slate-600">
+            <pre dir="ltr" lang="en" className="mt-1 max-h-64 overflow-auto rounded-lg bg-slate-50 p-2 text-left text-[11px] leading-5 text-slate-600">
               {JSON.stringify(row.raw, null, 2)}
             </pre>
           )}

@@ -13,7 +13,7 @@ export function PlanCard({ plan, onSend }: { plan: PlanRecommendation; onSend: (
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-base font-semibold text-slate-900">{fa.plan.title}</h3>
         <Badge tone="blue">
-          <span dir="ltr">{plan.planID}</span>
+          <span dir="ltr" lang="en">{plan.planID}</span>
         </Badge>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">

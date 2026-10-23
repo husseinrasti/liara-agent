@@ -39,7 +39,7 @@ function Cause({ cause, defaultOpen }: { cause: Diagnosis['causes'][number]; def
                 <div className="min-w-0 flex-1">
                   <div className="leading-7 text-slate-700">{ev.text_fa}</div>
                   {ev.raw && (
-                    <code dir="ltr" className="mt-0.5 block truncate rounded bg-slate-50 px-2 py-0.5 text-left font-mono text-[11px] text-slate-500" title={ev.raw}>
+                    <code dir="ltr" lang="en" className="mt-0.5 block truncate rounded bg-slate-50 px-2 py-0.5 text-left font-mono text-[11px] text-slate-500" title={ev.raw}>
                       {ev.raw}
                     </code>
                   )}

@@ -33,13 +33,16 @@ export function mergeAlerts(rows: AlertRow[], live: AlertEvent[], appName: strin
 }
 
 /** Watcher alerts for the selected app: investigate (sends the suggested prompt) or acknowledge. */
+/** Info alerts carry a short next step («SSL دامنه‌ی … را فعال کن») that reads better than «بررسی کن». */
+const actionLabel = (a: BannerAlert) => (a.severity === 'info' && a.suggestedPrompt && a.suggestedPrompt.length <= 34 ? a.suggestedPrompt : fa.alert.investigate);
+
 export function AlertBanner({ alerts, onInvestigate, onAck }: { alerts: BannerAlert[]; onInvestigate: (prompt: string) => void; onAck: (id: string) => void }) {
   if (!alerts.length) return null;
   return (
     <div data-testid="alert-banner" className="space-y-2 border-b border-slate-200 bg-white px-4 py-3">
       {alerts.slice(0, 3).map((a) => (
         <div key={`${a.appName}|${a.title}`} className={cx('mx-auto flex max-w-3xl flex-wrap items-center gap-3 rounded-xl border px-3 py-2.5', tones[a.severity])}>
-          <span className="shrink-0">{Icon.alert('h-5 w-5')}</span>
+          <span className="shrink-0">{a.severity === 'info' ? Icon.info('h-5 w-5') : Icon.alert('h-5 w-5')}</span>
           <div className="min-w-0 flex-1">
             <div className="text-sm font-semibold">
               {fa.alert.severity[a.severity]}: {a.title}
@@ -47,8 +50,15 @@ export function AlertBanner({ alerts, onInvestigate, onAck }: { alerts: BannerAl
             <div className="text-sm leading-6 opacity-90">{a.summary}</div>
           </div>
           <div className="flex gap-2">
-            <Button className="px-3 py-1.5" onClick={() => onInvestigate(a.suggestedPrompt ?? `${a.title} — بررسی کن`)}>
-              {fa.alert.investigate}
+            <Button
+              className="px-3 py-1.5"
+              onClick={() => {
+                onInvestigate(a.suggestedPrompt ?? `${a.title} — بررسی کن`);
+                // An info alert is done once acted on; warnings stay until the app is healthy again.
+                if (a.severity === 'info' && a.id) onAck(a.id);
+              }}
+            >
+              {actionLabel(a)}
             </Button>
             {a.id && (
               <Button variant="ghost" className="px-3 py-1.5" onClick={() => onAck(a.id!)}>

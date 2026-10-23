@@ -42,6 +42,21 @@ export function dnsStepsFa(domain: string, cname: string | null): string[] {
   return steps;
 }
 
+/** Records to create for the domain: ALIAS/ANAME on the apex (+ www CNAME), or one CNAME for a subdomain. */
+export function dnsRecords(domain: string, cname: string | null): { type: string; name: string; value: string }[] {
+  if (!cname) return [];
+  const labels = domain.split('.');
+  return labels.length === 2
+    ? [
+        { type: 'ALIAS / ANAME', name: '@', value: cname },
+        { type: 'CNAME', name: 'www', value: cname },
+      ]
+    : [{ type: 'CNAME', name: labels.slice(0, -2).join('.'), value: cname }];
+}
+
+const DOMAIN_STATUS_FA: Record<string, string> = { PENDING: 'در انتظار تنظیم DNS', ACTIVE: 'فعال', VERIFIED: 'تأییدشده', FAILED: 'ناموفق' };
+export const domainStatusFa = (s: string | null | undefined) => (s ? (DOMAIN_STATUS_FA[s.toUpperCase()] ?? s) : 'نامشخص');
+
 export function dnsGuideFa(domain: string, cname: string | null): string {
   return dnsStepsFa(domain, cname)
     .map((s, i) => `${i + 1}) ${s}`)
@@ -104,13 +119,14 @@ export const addDomainTool = defineTool({
     const created = await addDomain(ctx.liara, appName, domain);
     const d = created ? compactDomain(created) : null;
     const stepsFa = dnsStepsFa(domain, d?.cnameRecord ?? null);
+    ctx.emit?.({ type: 'domain_steps', appName, domain, records: dnsRecords(domain, d?.cnameRecord ?? null), stepsFa });
     return ok({ ...(d ?? { name: domain }), stepsFa }, `دامنه‌ی ${domain} ثبت شد؛ حالا باید رکورد DNS را تنظیم کنید.`);
   },
   verify: async ({ appName, domain }, _before, ctx) => {
     const d = await findDomain(ctx, appName, domain);
     return {
       ok: Boolean(d),
-      evidence: d ? [`دامنه در لیارا ثبت شد (وضعیت: ${d.status ?? 'نامشخص'})`, `هدف CNAME: ${d.CNameRecord ?? 'نامشخص'}`] : ['دامنه در فهرست دامنه‌های سرویس پیدا نشد'],
+      evidence: d ? [`دامنه در لیارا ثبت شد (وضعیت: ${domainStatusFa(d.status)})`, `مقصد رکورد CNAME: ${d.CNameRecord ?? 'نامشخص'}`] : ['دامنه در فهرست دامنه‌های سرویس پیدا نشد'],
     };
   },
   verifyDelayMs: 2000,
@@ -141,7 +157,7 @@ export const enableSslTool = defineTool({
     }
     if (!d) return { ok: false, evidence: ['دامنه در فهرست سرویس پیدا نشد'] };
     const active = isSslActive(d);
-    return { ok: active, evidence: [active ? 'گواهی SSL فعال شد' : `صدور گواهی هنوز کامل نشده (وضعیت: ${d.certificatesStatus ?? 'نامشخص'})`] };
+    return { ok: active, evidence: [active ? 'گواهی SSL فعال شد' : `صدور گواهی هنوز کامل نشده (وضعیت: ${domainStatusFa(d.certificatesStatus)})`] };
   },
   verifyDelayMs: 10_000,
 });

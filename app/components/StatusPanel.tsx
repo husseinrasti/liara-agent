@@ -39,7 +39,7 @@ export function StatusPanel({ status, loading, appName, onToggleWatch }: { statu
     <div className="space-y-4 p-4">
       <div className="flex items-center gap-2">
         <Dot level={s.level} />
-        <h2 dir="ltr" className="flex-1 truncate text-left text-base font-semibold text-slate-900">
+        <h2 dir="ltr" lang="en" className="flex-1 truncate text-left text-base font-semibold text-slate-900">
           {s.appName}
         </h2>
         <Badge tone={s.level === 'ok' ? 'green' : s.level === 'degraded' ? 'amber' : s.level === 'down' ? 'red' : 'slate'}>{levelText[s.level]}</Badge>
@@ -63,7 +63,7 @@ export function StatusPanel({ status, loading, appName, onToggleWatch }: { statu
         <Row label={fa.status.plan}>
           {s.plan ? (
             <span>
-              <span dir="ltr">{s.plan.id}</span>
+              <span dir="ltr" lang="en">{s.plan.id}</span>
               {s.plan.monthlyEstimateIRT !== null && <span className="block text-xs text-slate-500">{faMoney(s.plan.monthlyEstimateIRT)} در ماه</span>}
             </span>
           ) : (
@@ -81,7 +81,7 @@ export function StatusPanel({ status, loading, appName, onToggleWatch }: { statu
         <Row label={fa.status.release}>
           {s.release ? (
             <span>
-              <span dir="ltr">{s.release.tag ?? '—'}</span> · {s.release.stateFa}
+              <span dir="ltr" lang="en">{s.release.tag ?? '—'}</span> · {s.release.stateFa}
               {s.release.ageMinutes !== null && <span className="block text-xs text-slate-500">{fa.status.minutesAgo(s.release.ageMinutes)}</span>}
             </span>
           ) : (
@@ -93,7 +93,7 @@ export function StatusPanel({ status, loading, appName, onToggleWatch }: { statu
             <span className="space-y-0.5">
               {s.domains.map((d) => (
                 <span key={d.name} className="block">
-                  <span dir="ltr">{d.name}</span> · {d.verified ? fa.status.verified : fa.status.pending}
+                  <span dir="ltr" lang="en">{d.name}</span> · {d.verified ? fa.status.verified : fa.status.pending}
                   {d.verified && <span className="text-xs text-slate-500"> · {fa.status.ssl} {d.sslActive ? '✓' : '…'}</span>}
                 </span>
               ))}

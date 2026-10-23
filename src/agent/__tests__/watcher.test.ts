@@ -107,6 +107,14 @@ describe('domain flow', () => {
     expect(result.ok).toBe(true);
     expect((result as { data: { stepsFa: string[] } }).data.stepsFa[0]).toContain('irnic.ir');
     expect(events.find((e) => e.type === 'limitation')).toMatchObject({ message: expect.stringContaining('ایرنیک') });
+    expect(events.find((e) => e.type === 'domain_steps')).toMatchObject({
+      domain: 'myshop.ir',
+      records: [
+        { type: 'ALIAS / ANAME', name: '@', value: 'shop.liara.run' },
+        { type: 'CNAME', name: 'www', value: 'shop.liara.run' },
+      ],
+      stepsFa: expect.arrayContaining([expect.stringContaining('irnic.ir')]),
+    });
     expect(getMemoryKey(rt.deps.db, 'shop', 'pendingDomains')).toMatchObject([{ domainId: 'd1', name: 'myshop.ir' }]);
 
     await watcher.tick();

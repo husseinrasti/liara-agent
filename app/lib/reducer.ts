@@ -25,6 +25,7 @@ export type TurnItem =
   | { kind: 'approval'; id: string; event: EventOf<'approval_required'>; resolved?: { approved: boolean; by: string; ts: string } }
   | { kind: 'diagnosis'; id: string; event: EventOf<'diagnosis'> }
   | { kind: 'plan'; id: string; event: EventOf<'plan_recommendation'> }
+  | { kind: 'domain'; id: string; event: EventOf<'domain_steps'> }
   | { kind: 'deploy'; id: string; stages: Partial<Record<DeployStage, DeployStageState>>; url?: string }
   | { kind: 'verify'; id: string; event: EventOf<'verify_result'> }
   | { kind: 'limitation'; id: string; message: string }
@@ -136,6 +137,9 @@ function apply(state: ChatState, e: AgentEvent): ChatState {
       break;
     case 'plan_recommendation':
       t.items.push({ kind: 'plan', id: e.id, event: e });
+      break;
+    case 'domain_steps':
+      t.items.push({ kind: 'domain', id: e.id, event: e });
       break;
     case 'deploy_progress': {
       const i = t.items.findIndex((it) => it.kind === 'deploy');

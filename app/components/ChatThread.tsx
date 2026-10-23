@@ -7,6 +7,7 @@ import type { AssistantTurn, TurnItem } from '@/app/lib/reducer';
 import { ApprovalCard } from './ApprovalCard';
 import { DeployProgress } from './DeployProgress';
 import { DiagnosisCard } from './DiagnosisCard';
+import { DomainStepsCard } from './DomainStepsCard';
 import { Markdown } from './Markdown';
 import { ErrorBubble, LimitationNotice, SuggestionChips, VerifyStrip } from './Notices';
 import { OperationTimeline } from './OperationTimeline';
@@ -24,6 +25,8 @@ function Item({ item, agent }: { item: TurnItem; agent: AgentApi }) {
       return <DiagnosisCard diagnosis={item.event.diagnosis} source={item.event.source} onSend={agent.send} />;
     case 'plan':
       return <PlanCard plan={item.event.recommendation} onSend={agent.send} />;
+    case 'domain':
+      return <DomainStepsCard event={item.event} />;
     case 'deploy':
       return <DeployProgress stages={item.stages} url={item.url} />;
     case 'verify':

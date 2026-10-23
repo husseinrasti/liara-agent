@@ -41,7 +41,7 @@ export function DeployProgress({ stages, url }: { stages: Partial<Record<string,
       </ol>
       {healthy && url && (
         <div className="flex flex-wrap items-center gap-2 rounded-xl bg-emerald-50 p-3">
-          <a href={url} target="_blank" rel="noreferrer" dir="ltr" className="inline-flex items-center gap-2 text-lg font-semibold text-emerald-800 hover:underline">
+          <a href={url} target="_blank" rel="noreferrer" dir="ltr" lang="en" className="inline-flex items-center gap-2 text-lg font-semibold text-emerald-800 hover:underline">
             {url.replace(/^https?:\/\//, '')}
             {Icon.external('h-4 w-4')}
           </a>

@@ -42,6 +42,13 @@ const payloads = {
   approval_resolved: z.object({ approvalId: z.string(), approved: z.boolean(), by: z.string() }),
   diagnosis: z.object({ appName: z.string(), source: z.enum(['llm', 'rules']), diagnosis: DiagnosisSchema }),
   plan_recommendation: z.object({ recommendation: PlanRecommendationSchema }),
+  /** DNS records the user must create at their registrar, plus the steps (IRNIC for .ir). */
+  domain_steps: z.object({
+    appName: z.string(),
+    domain: z.string(),
+    records: z.array(z.object({ type: z.string(), name: z.string(), value: z.string() })),
+    stepsFa: z.array(z.string()),
+  }),
   deploy_progress: z.object({
     stage: z.enum(DEPLOY_STAGES),
     status: z.enum(['pending', 'running', 'done', 'failed']),

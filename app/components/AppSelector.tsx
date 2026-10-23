@@ -43,7 +43,7 @@ export function AppSelector({
             className={cx('flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-start text-sm transition-colors', active ? 'bg-blue-50 font-semibold text-blue-800' : 'text-slate-700 hover:bg-slate-100')}
           >
             <Dot level={level} />
-            <span dir="ltr" className="min-w-0 flex-1 truncate text-left">
+            <span dir="ltr" lang="en" className="min-w-0 flex-1 truncate text-left">
               {a.name}
             </span>
             <span className="text-[11px] text-slate-400">{a.platform}</span>
