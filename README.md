@@ -258,7 +258,7 @@ liara-agent/
 │   ├── knowledge/        مستندات منتخب لیارا برای search_docs
 │   └── events.ts         پروتکل رویداد مشترک سرور و رابط کاربری
 ├── demo-app/             برنامه‌ی دموی «فروشگاه نمونه» با حالت‌های خرابی
-├── scripts/              probe، chaos، shots، اسکریپت‌های پذیرش (acceptance/prd01..03)
+├── scripts/              probe، chaos، shots، deploy-self، mcp-smoke، اسکریپت‌های پذیرش (acceptance/prd01..03)
 ├── fixtures/liara/       پاسخ‌های واقعی پاک‌سازی‌شده‌ی API
 └── docs/                 PRDها، API-NOTES.md، MCP.md
 ```
@@ -267,7 +267,8 @@ liara-agent/
 |---|---|
 | `npm run test` | تست‌های واحد Vitest: تحلیل لاگ، خلاصه‌ی متریک، موتور قاعده و پلی‌بوک‌ها، دروازه‌ی ریسک، verify، پایشگر، جادوگر انتشار، reducer رابط کاربری، … |
 | `npm run accept:prd01` | کلاینت، ابزارها و MCP روی حساب واقعی لیارا |
-| `npm run accept:prd02` | عامل بدون رابط کاربری: تشخیص چند حادثه‌ی واقعی، تأیید، verify، پایشگر |
+| `npm run accept:prd02` | عامل بدون رابط کاربری: تشخیص چند حادثه‌ی واقعی، تأیید، verify، پایشگر؛ با `-- --sim` روی شبیه‌ساز |
 | `npm run accept:prd03` | رابط کاربری در مرورگر واقعی: پاسخ فارسی، رد و تأیید ری‌استارت، نوار بررسی، اعلان محدودیت، هشدار پایشگر بعد از `chaos leak`؛ با `-- --sim` روی شبیه‌ساز |
+| `npm run mcp:smoke` | سرور MCP از راه stdio مثل Claude Desktop: فهرست ابزارها، رد اقدام بدون تأیید، اقدام تأییدشده و بررسی‌شده، محدودیت‌ها، تشخیص؛ با `-- --sim` روی شبیه‌ساز |
 
 قبل از ضبط دمو، فهرست بررسی دستی بخش ۵ از [docs/03-ui-demo-readme.md](docs/03-ui-demo-readme.md) را انجام دهید.

@@ -32,6 +32,7 @@ the probe before PRD-01 is accepted.
 | Console shell | `wss://api.iran.liara.ir/v1/exec?token=…&cmd=<cmd>&project_id=<app name>&teamID=`; after open send `{"action":"start","cols","rows"}`; output = raw frames. **[cli]** | `endpoints/shell.ts` |
 | Rollback | No native endpoint in spec or CLI. Strategy: re-release the target release's stored `sourceID`; if refused, re-upload the archive kept in `data/sources/<app>/` and release it. Releases not deployed through this agent cannot be rolled back automatically (declared as a limitation). A release we rolled back FROM is remembered (`badReleases` in app memory) and never chosen as a later rollback target. **[spec][cli]** — probe tests sourceID reuse and candidate endpoints. | `rollback_release` |
 | Access logs | None in the API (container stdout/stderr only). Health comes from our own HTTP probe. **[spec]** | `limits.md` |
+| Disks | Create: `POST /v1/projects/{app}/disks {name, size}` (name in the path, size as a number or numeric string). List: `GET /v1/projects/{_id}/disks` (app **_id**). Mount: the release body carries `disks: [{name, mountTo}]` taken from liara.json `disks` (liara-cli `deploy`). **[cli][spec]** | `create_disk`, `deploy_project`, `scripts/deploy-self.ts` |
 
 ## Environment notes
 
