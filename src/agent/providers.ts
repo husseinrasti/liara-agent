@@ -58,6 +58,18 @@ export function getModel(tier: ModelTier): LanguageModel {
   return m;
 }
 
+/** OpenAI reasoning models (gpt-5*, o-series) reject `temperature`. */
+export function isReasoningModel(provider: LlmProvider, id: string): boolean {
+  return provider === 'openai' && /^(gpt-5|o\d)/i.test(id);
+}
+
+/** Sampling settings appropriate for the configured model of a tier. */
+export function callSettings(tier: ModelTier, cfg: AppConfig = getConfig(), temperature = 0.2) {
+  const id = modelId(tier, cfg);
+  if (!isReasoningModel(cfg.llm.provider, id)) return { temperature };
+  return { providerOptions: { openai: { reasoningEffort: tier === 'fast' ? 'low' : 'medium' } } };
+}
+
 export interface LlmHealth {
   ok: boolean;
   provider: LlmProvider;
@@ -86,7 +98,9 @@ export interface SafeGenerateOptions<T> {
   system?: string;
   prompt: string;
   schemaName?: string;
+  /** Use callSettings(tier) — reasoning models reject temperature. */
   temperature?: number;
+  providerOptions?: Record<string, Record<string, string | number | boolean>>;
   maxOutputTokens?: number;
   timeoutMs?: number;
   logger?: Logger;
@@ -125,7 +139,8 @@ export async function safeGenerateObject<T>(opts: SafeGenerateOptions<T>): Promi
   const common = {
     model: opts.model,
     system: opts.system,
-    temperature: opts.temperature ?? 0.2,
+    temperature: opts.temperature,
+    providerOptions: opts.providerOptions,
     maxOutputTokens: opts.maxOutputTokens,
   };
   const signal = () => AbortSignal.timeout(opts.timeoutMs ?? 90_000);

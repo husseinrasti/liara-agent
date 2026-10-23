@@ -7,7 +7,7 @@ import { defineTool, type ToolContext } from '../registry';
 const domainSchema = z
   .string()
   .toLowerCase()
-  .regex(/^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$/, 'a domain like example.ir or www.example.com')
+  .regex(/^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$/, 'a domain like example.ir or www.example.com')
   .describe('Domain name without protocol, e.g. "myshop.ir" or "www.myshop.ir"');
 
 export function compactDomain(d: Domain) {

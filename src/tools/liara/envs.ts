@@ -6,14 +6,18 @@ import { defineTool } from '../registry';
 import { sinceOf } from './apps';
 import { verifyAppHealthy } from './checks';
 
-const envKey = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/, 'env names: letters, digits, underscore; not starting with a digit');
+const ENV_KEY = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const envKey = z.string().regex(ENV_KEY, 'env names: letters, digits, underscore; not starting with a digit');
 
+// Keys of `set` are validated in a refinement (record key patterns become JSON Schema
+// `propertyNames`, which OpenAI structured tools do not support).
 const input = z
   .object({
     appName: appNameSchema,
-    set: z.record(envKey, z.string()).optional().describe('Variables to add/overwrite. Never invent secret values: ask the user.'),
+    set: z.record(z.string(), z.string()).optional().describe('Variables to add/overwrite, e.g. {"API_KEY":"…"}. Never invent secret values: ask the user.'),
     unset: z.array(envKey).optional().describe('Variable names to remove'),
   })
+  .refine((v) => Object.keys(v.set ?? {}).every((k) => ENV_KEY.test(k)), 'env names: letters, digits, underscore; not starting with a digit')
   .refine((v) => Object.keys(v.set ?? {}).length + (v.unset?.length ?? 0) > 0, 'nothing to change: give set and/or unset');
 
 type Input = z.infer<typeof input>;

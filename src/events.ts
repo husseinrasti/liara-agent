@@ -56,7 +56,7 @@ const payloads = {
   }),
   suggestions: z.object({ chips: z.array(z.string()).max(4) }),
   error: z.object({ message: z.string() }),
-  done: z.object({}),
+  done: z.looseObject({}),
 };
 
 export type EventType = keyof typeof payloads;

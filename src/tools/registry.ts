@@ -3,7 +3,7 @@
  * and the MCP server. Risk is a property of the tool; enforcement lives in the
  * policy gate (PRD-02) and in the MCP server, never in prompts.
  */
-import { tool, type ToolSet } from 'ai';
+import { tool, type LanguageModel, type ToolSet } from 'ai';
 import { z, type ZodType } from 'zod';
 import type { Db } from '../db';
 import type { EmitFn } from '../events';
@@ -31,6 +31,10 @@ export interface ToolContext {
   emit?: EmitFn;
   /** fetch used for public HTTP health checks (injectable for tests). */
   httpFetch?: typeof fetch;
+  /** Language models, for agent-level tools (diagnose_app…). Absent when no LLM is configured. */
+  llm?: (tier: 'fast' | 'smart') => LanguageModel;
+  /** The agent runtime when running inside the agent (opaque here to avoid a dependency cycle). */
+  agent?: unknown;
 }
 
 export type ToolSuccess<O> = { ok: true; data: O; summaryFa: string; raw?: unknown };
@@ -163,8 +167,8 @@ export function compactForModel(result: ToolResult<unknown> | Record<string, unk
 
 export interface AiToolsOptions {
   only?: string[];
-  /** PRD-02 wires the policy gate here; default runs the tool directly. */
-  execute?: (def: ToolDef, input: unknown) => Promise<ToolResult<unknown> | Record<string, unknown>>;
+  /** The agent wires the policy gate here; default runs the tool directly. */
+  execute?: (def: ToolDef, input: unknown, meta: { toolCallId: string }) => Promise<ToolResult<unknown> | Record<string, unknown>>;
 }
 
 /** Vercel AI SDK `tools` object for the given context. */
@@ -175,7 +179,8 @@ export function toAiSdkTools(ctx: ToolContext, opts: AiToolsOptions = {}): ToolS
     out[def.name] = tool({
       description: riskPrefix(def.risk) + def.description,
       inputSchema: def.input as ZodType<unknown>,
-      execute: async (input: unknown) => (opts.execute ? opts.execute(def, input) : runTool(def, input, ctx)),
+      execute: async (input: unknown, options: { toolCallId: string }) =>
+        opts.execute ? opts.execute(def, input, { toolCallId: options.toolCallId }) : runTool(def, input, ctx),
       toModelOutput: ({ output }) => ({ type: 'json', value: JSON.parse(JSON.stringify(compactForModel(output as ToolResult<unknown>))) }),
     });
   }
