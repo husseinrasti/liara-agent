@@ -101,9 +101,12 @@ export function createLiaraSimulator(opts: { now?: () => number; seed?: boolean;
       return json({ sourceID: state.registerSource(m[1]!, Buffer.from(await file.arrayBuffer())) });
     }
     if ((m = /^\/v2\/projects\/([^/]+)\/releases$/.exec(p)) && method === 'POST') {
-      const b = body as { sourceID?: string; port?: number; type?: string };
+      const b = body as { sourceID?: string; port?: number; type?: string; disks?: { name: string; mountTo: string }[] };
       if (!b.sourceID) return json({ statusCode: 400, message: 'sourceID is required' }, 400);
-      const releaseID = state.createRelease(m[1]!, { sourceID: b.sourceID, port: b.port ?? 3000, type: b.type ?? 'node' });
+      const target = state.apps.get(m[1]!);
+      const missing = (b.disks ?? []).find((d) => !target?.disks.some((x) => x.name === d.name));
+      if (missing) return json({ statusCode: 400, message: `Disk ${missing.name} does not exist.` }, 400);
+      const releaseID = state.createRelease(m[1]!, { sourceID: b.sourceID, port: b.port ?? 3000, type: b.type ?? 'node', ...(b.disks ? { disks: b.disks } : {}) });
       return releaseID ? json({ releaseID }) : json({ statusCode: 400, message: 'Unknown sourceID or app' }, 400);
     }
     if ((m = /^\/v1\/domains\/([^/]+)\/check$/.exec(p)) && method === 'GET') {
@@ -127,7 +130,16 @@ export function createLiaraSimulator(opts: { now?: () => number; seed?: boolean;
       return json({ message: 'ssl requested' });
     }
     if ((m = /^\/v1\/domains\/([^/]+)$/.exec(p)) && method === 'DELETE') return state.domains.delete(m[1]!) ? json({}) : notFound();
-    if ((m = /^\/v1\/projects\/([^/]+)\/disks$/.exec(p)) && method === 'GET') return json({ disks: [], mounts: [] });
+    if ((m = /^\/v1\/projects\/([^/]+)\/disks$/.exec(p)) && method === 'GET') {
+      // Liara takes the app _id here (the CLI passes the name to POST).
+      const a = [...state.apps.values()].find((x) => x._id === m![1] || x.name === m![1]);
+      if (!a) return notFound('App does not exist.');
+      const current = a.releases.find((r) => r._id === a.current);
+      return json({
+        disks: a.disks.map((d) => ({ _id: `disk-${d.name}`, name: d.name, size: d.size, createdAt: iso(d.createdAt) })),
+        mounts: (current?.disks ?? []).map((d) => ({ name: d.name, mountedTo: d.mountTo })),
+      });
+    }
 
     m = /^\/v[12]\/projects\/([^/]+)(\/.*)?$/.exec(p);
     const app = m ? state.apps.get(m[1]!) : undefined;
@@ -155,6 +167,23 @@ export function createLiaraSimulator(opts: { now?: () => number; seed?: boolean;
       const st = appletState(run, t);
       const release = app.releases.find((r) => r._id === app.current);
       return json({ applets: st ? [{ id: `${app._id}-a1`, name: `${app.name}-7d9f6c-x2k`, timestamp: iso(app.startedAt), ...st, release: release ? { releaseID: release._id, tag: release.tag } : null }] : [] });
+    }
+    if (sub === '/disks' && method === 'POST') {
+      const b = body as { name?: string; size?: string | number };
+      const size = Number(b.size);
+      if (!b.name || !/^[a-z0-9][a-z0-9-]{1,30}$/.test(b.name)) return json({ statusCode: 400, message: 'Invalid disk name.' }, 400);
+      if (!Number.isFinite(size) || size < 1) return json({ statusCode: 400, message: '"size" must be a number' }, 400);
+      if (app.disks.some((d) => d.name === b.name)) return json({ statusCode: 409, message: 'Disk already exists' }, 409);
+      app.disks.push({ name: b.name, size, createdAt: now() });
+      return json({ message: 'disk created' }, 201);
+    }
+    if ((m = /^\/disks\/([^/]+)\/resize$/.exec(sub)) && method === 'POST') {
+      const d = app.disks.find((x) => x.name === m![1]);
+      const size = Number((body as { size?: string | number }).size);
+      if (!d) return notFound('Disk does not exist.');
+      if (!Number.isFinite(size) || size <= d.size) return json({ statusCode: 400, message: 'New size must be larger' }, 400);
+      d.size = size;
+      return json({ message: 'disk resized' });
     }
     if (sub === '/releases' && method === 'GET') {
       const count = Number(q.get('count') ?? 10);

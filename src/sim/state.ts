@@ -13,6 +13,9 @@ export interface SimRelease {
   type: string;
   tag: string;
   chaos?: ChaosMode;
+  requiredEnv?: string;
+  /** liara.json disks mounted by this release */
+  disks?: { name: string; mountTo: string }[];
   failLines?: string[];
   state: string;
 }
@@ -30,6 +33,7 @@ export interface SimApp {
   createdAt: number;
   startedAt: number;
   lifecycle: SimEvent[];
+  disks: { name: string; size: number; createdAt: number }[];
 }
 
 export interface SimDomain {
@@ -49,7 +53,7 @@ export const SSL_ISSUE_MS = 20_000;
 export class SimState {
   readonly apps = new Map<string, SimApp>();
   readonly domains = new Map<string, SimDomain>();
-  readonly sources = new Map<string, { app: string; chaos?: ChaosMode; failLines?: string[] }>();
+  readonly sources = new Map<string, { app: string; chaos?: ChaosMode; failLines?: string[]; requiredEnv?: string }>();
   balance = 2_500_000;
 
   constructor(readonly now: () => number = Date.now) {}
@@ -89,6 +93,7 @@ export class SimState {
       createdAt: at,
       startedAt: at,
       lifecycle: [],
+      disks: [],
     };
     this.apps.set(app.name, app);
     return app;
@@ -124,7 +129,7 @@ export class SimState {
     const envs = Object.fromEntries(app.envs.map((e) => [e.key, e.value]));
     const release = app.releases.find((r) => r._id === app.current);
     const envMode = CHAOS_MODES.find((m) => m === envs.CHAOS_MODE);
-    return { mode: envMode ?? release?.chaos ?? 'none', startedAt: app.startedAt, ramMB: spec.ramMB, cpuCores: spec.cpu, envs, scale: app.scale, deployed: Boolean(release) };
+    return { mode: envMode ?? release?.chaos ?? 'none', startedAt: app.startedAt, ramMB: spec.ramMB, cpuCores: spec.cpu, envs, scale: app.scale, deployed: Boolean(release), requiredEnv: release?.requiredEnv };
   }
 
   restart(app: SimApp, reason = 'Killing'): void {
@@ -140,7 +145,11 @@ export class SimState {
     this.restart(app);
   }
 
-  /** Reads chaos.json (baked chaos mode) and package.json validity from an uploaded archive. */
+  /**
+   * Reads what the uploaded code would do: chaos.json (baked chaos mode), the
+   * acceptance fixtures by package name (liara-agent-fixture-leak|crash), an
+   * `if (!process.env.X) … process.exit` guard, and package.json validity.
+   */
   registerSource(app: string, archive: Buffer): string {
     const files = readTarGz(archive);
     let chaos: ChaosMode | undefined;
@@ -154,21 +163,23 @@ export class SimState {
     const pkg = files.get('package.json');
     if (pkg !== undefined) {
       try {
-        JSON.parse(pkg);
+        const fixture = /^liara-agent-fixture-(leak|crash)$/.exec(String((JSON.parse(pkg) as { name?: unknown }).name ?? ''))?.[1];
+        chaos ??= fixture as ChaosMode | undefined;
       } catch (err) {
         failLines = ['npm ERR! code EJSONPARSE', `npm ERR! JSON.parse ${(err as Error).message}`, 'npm ERR! JSON.parse Failed to parse JSON data.', 'npm ERR! A complete log of this run can be found in: /root/.npm/_logs/debug.log'];
       }
     }
+    const requiredEnv = /if\s*\(\s*!process\.env\.([A-Z_][A-Z0-9_]*)\s*\)\s*\{[^}]*process\.exit/.exec(files.get('index.js') ?? '')?.[1];
     const sourceID = id('src');
-    this.sources.set(sourceID, { app, chaos, failLines });
+    this.sources.set(sourceID, { app, chaos, failLines, requiredEnv });
     return sourceID;
   }
 
-  createRelease(name: string, body: { sourceID: string; port: number; type: string }): string | null {
+  createRelease(name: string, body: { sourceID: string; port: number; type: string; disks?: { name: string; mountTo: string }[] }): string | null {
     const app = this.apps.get(name);
     const src = this.sources.get(body.sourceID);
     if (!app || !src) return null;
-    const r: SimRelease = { _id: id('rel'), sourceID: body.sourceID, createdAt: this.now(), port: body.port, type: body.type, tag: `v${app.releases.length + 1}`, chaos: src.chaos, failLines: src.failLines, state: 'BUILDING' };
+    const r: SimRelease = { _id: id('rel'), sourceID: body.sourceID, disks: body.disks, createdAt: this.now(), port: body.port, type: body.type, tag: `v${app.releases.length + 1}`, chaos: src.chaos, failLines: src.failLines, requiredEnv: src.requiredEnv, state: 'BUILDING' };
     app.releases.push(r);
     return r._id;
   }

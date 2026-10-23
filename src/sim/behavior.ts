@@ -15,6 +15,8 @@ export interface RunState {
   envs: Record<string, string>;
   scale: number;
   deployed: boolean;
+  /** Env var the code refuses to start without (it exits at start-up when missing). */
+  requiredEnv?: string;
 }
 
 export interface SimLog {
@@ -36,11 +38,17 @@ const RESTART_GAP_MS = 10_000;
 const CRASH_AFTER_MS = 3_000;
 const STEP_MS = 15_000;
 
-/** Effective mode: missing-env only bites when PAYMENT_API_KEY is absent. */
+/** Effective mode: code that requires an env var fails without it; the demo app's missing-env mode needs PAYMENT_API_KEY absent. */
 export function effectiveMode(s: RunState): ChaosMode {
+  if (s.requiredEnv && !s.envs[s.requiredEnv]) return 'missing-env';
   if (s.mode === 'missing-env' && s.envs.PAYMENT_API_KEY) return 'none';
   return s.mode;
 }
+
+/** The app exits at start-up (crash loop) instead of answering 500s. */
+const exitsAtStart = (s: RunState) => Boolean(s.requiredEnv && !s.envs[s.requiredEnv]);
+/** Crash-looping: the crash mode, or code that exits at start-up for a missing env var. */
+const crashLoops = (s: RunState) => effectiveMode(s) === 'crash' || exitsAtStart(s);
 
 /** OOM cycle for the leak mode: [cycleStart, oomAt] pairs up to `now`. */
 export function leakCycles(s: RunState, now: number): { start: number; oom: number }[] {
@@ -71,12 +79,13 @@ export function memoryMB(s: RunState, t: number): number {
     if (!c || t > c.oom) return BASE_MB;
     return Math.min(s.ramMB, BASE_MB + ((t - c.start) / 1000) * LEAK_MB_PER_S);
   }
-  if (mode === 'crash') return 60 + (t % 7);
+  if (crashLoops(s)) return 60 + (t % 7);
   return BASE_MB - 10 + ((t / 60_000) % 9);
 }
 
 export function cpuCores(s: RunState, t: number): number {
   if (!s.deployed || s.scale === 0) return 0;
+  if (crashLoops(s)) return 0.01;
   const jitter = ((t / 60_000) % 5) / 100;
   switch (effectiveMode(s)) {
     case 'slow':
@@ -100,7 +109,7 @@ export function healthAt(s: RunState, t: number): Health {
   if (!s.deployed) return { status: 404, latencyMs: 40, body: 'Application not found' };
   if (s.scale === 0) return { status: 503, latencyMs: 30, body: 'Service Unavailable' };
   const mode = effectiveMode(s);
-  if (mode === 'crash') return { status: 503, latencyMs: 25, body: 'Service Unavailable' };
+  if (crashLoops(s)) return { status: 503, latencyMs: 25, body: 'Service Unavailable' };
   if (mode === 'leak') {
     const c = leakCycles(s, t).pop();
     if (c && t > c.oom) return { status: 502, latencyMs: 35, body: 'Bad Gateway' };
@@ -149,6 +158,8 @@ export function logsBetween(s: RunState, from: number, to: number): SimLog[] {
       push(c.oom - 1, '<--- Last few GCs --->', 'stderr');
       push(c.oom, 'FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory', 'stderr');
     }
+  } else if (exitsAtStart(s)) {
+    for (const start of crashStarts(s, to)) push(start + 200, `Error: ${s.requiredEnv} is not set`, 'stderr');
   } else if (mode === 'crash') {
     for (const start of crashStarts(s, to)) {
       listen(start);
@@ -187,7 +198,7 @@ export function eventsBetween(s: RunState, from: number, to: number): SimEvent[]
       }
     });
   }
-  if (mode === 'crash') {
+  if (crashLoops(s)) {
     for (const start of crashStarts(s, to).slice(1)) if (start >= from && start <= to) out.push({ t: start - 1000, reason: 'BackOff', type: 'Warning', message: 'Back-off restarting failed container' });
   }
   return out;
@@ -196,7 +207,7 @@ export function eventsBetween(s: RunState, from: number, to: number): SimEvent[]
 export function appletState(s: RunState, now: number): { state: string; reason: string | null } | null {
   if (!s.deployed || s.scale === 0) return null;
   const mode = effectiveMode(s);
-  if (mode === 'crash') return { state: 'CrashLoopBackOff', reason: 'Error' };
+  if (crashLoops(s)) return { state: 'CrashLoopBackOff', reason: 'Error' };
   if (mode === 'leak') {
     const c = leakCycles(s, now).pop();
     const recentOom = leakCycles(s, now).some((x) => now - x.oom < 120_000 && now >= x.oom);
