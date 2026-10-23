@@ -1,0 +1,15 @@
+node_modules
+.next
+.git
+.claude
+.env
+.env.*
+!.env.example
+data
+video
+coverage
+dist
+fixtures/liara/*.raw.json
+*.log
+*.tsbuildinfo
+.DS_Store

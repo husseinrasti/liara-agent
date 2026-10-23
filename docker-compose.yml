@@ -1,0 +1,47 @@
+# Local Docker run of the web UI against the real Liara account.
+#   docker compose up -d --build        → http://localhost:3200
+#   docker compose logs -f liara-agent
+#   docker compose --profile sim up -d  → also the opt-in simulator UI on http://localhost:3210
+#
+# Credentials come from .env at runtime and never enter the image. The deploy assistant
+# can only see folders mounted below: ~/my-shop (the demo project) is mounted at the same
+# path, so "~/my-shop" in the chat works as-is. Add more project folders the same way.
+services:
+  liara-agent:
+    build: .
+    image: liara-agent:local
+    container_name: liara-agent
+    ports:
+      - "3200:3000"
+    env_file: .env
+    environment:
+      HOME: ${HOME}
+      DATABASE_PATH: /app/data/agent.db
+      AUTO_APPROVE: "false"
+      LIARA_FAKE: ""
+    volumes:
+      - agent-data:/app/data
+      - ${HOME}/my-shop:${HOME}/my-shop
+    restart: unless-stopped
+
+  liara-agent-sim:
+    profiles: ["sim"]
+    image: liara-agent:local
+    container_name: liara-agent-sim
+    ports:
+      - "3210:3000"
+    env_file: .env
+    environment:
+      HOME: ${HOME}
+      DATABASE_PATH: /app/data/agent-sim.db
+      AUTO_APPROVE: "false"
+      LIARA_FAKE: "1"
+      LIARA_API_TOKEN: simulated
+    volumes:
+      - agent-sim-data:/app/data
+      - ${HOME}/my-shop:${HOME}/my-shop
+    restart: unless-stopped
+
+volumes:
+  agent-data:
+  agent-sim-data:

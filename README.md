@@ -190,6 +190,20 @@ npm run dev               # http://localhost:3000  (اگر پورت پر است:
 متغیرهای اصلی `.env`: `LIARA_API_TOKEN`، `DEMO_APP_NAME`، `LLM_PROVIDER` (`openai` | `gemini` | `openrouter`)،
 `LLM_FAST_MODEL`، `LLM_SMART_MODEL`، کلید همان سرویس، `WATCHER_INTERVAL_SEC` (پیش‌فرض ۶۰).
 
+### اجرا با Docker
+
+```bash
+cp -r demo-app ~/my-shop && rm ~/my-shop/liara.json   # پروژه‌ی نمونه برای سناریوی انتشار
+docker compose up -d --build                          # http://localhost:3200
+docker compose logs -f liara-agent
+docker compose --profile sim up -d                    # اختیاری: حالت شبیه‌ساز روی http://localhost:3210
+```
+
+کلیدها فقط هنگام اجرا از `.env` خوانده می‌شوند و داخل ایمیج نمی‌روند؛ پایگاه داده در volume می‌ماند و
+`AUTO_APPROVE` همیشه خاموش است. دستیار داخل کانتینر فقط پوشه‌های mount شده را می‌بیند: `~/my-shop` با همان مسیر
+mount شده تا «~/my-shop» در گفت‌وگو کار کند؛ پوشه‌ی دیگری لازم بود، در `docker-compose.yml` اضافه‌اش کنید.
+دستور `npm run chaos` روی خود سیستم اجرا می‌شود (نه داخل کانتینر).
+
 ### استقرار خود دستیار روی لیارا (اختیاری)
 
 دستیار می‌تواند رابط کاربری خودش را هم با همان ابزارها روی لیارا منتشر کند:
