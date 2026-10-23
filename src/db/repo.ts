@@ -29,6 +29,25 @@ export function sourceForRelease(db: Db, appName: string, releaseID: string): So
   return db.prepare('SELECT * FROM sources WHERE appName = ? AND releaseID = ?').get(appName, releaseID) as SourceRow | undefined;
 }
 
+/** Releases this assistant rolled back FROM; a later rollback never returns to them. */
+export function badReleases(db: Db, appName: string): string[] {
+  const row = db.prepare("SELECT value FROM app_memory WHERE appName = ? AND key = 'badReleases'").get(appName) as { value: string } | undefined;
+  try {
+    const v: unknown = row ? JSON.parse(row.value) : [];
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markReleaseBad(db: Db, appName: string, releaseID: string, now = new Date()): void {
+  const ids = [...new Set([...badReleases(db, appName), releaseID])].slice(-20);
+  db.prepare(
+    `INSERT INTO app_memory (appName, key, value, updatedAt) VALUES (?, 'badReleases', ?, ?)
+     ON CONFLICT(appName, key) DO UPDATE SET value = excluded.value, updatedAt = excluded.updatedAt`,
+  ).run(appName, JSON.stringify(ids), now.toISOString());
+}
+
 export interface AuditStart {
   sessionId?: string | null;
   tool: string;

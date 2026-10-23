@@ -6,6 +6,7 @@
 import type { Balance } from '../../liara/endpoints/account';
 import { cheapestBundle, monthlyTotalIRT, purchasablePlans, type Plan } from '../../liara/plans';
 import { PLATFORM_FA } from '../../tools/local/analyze-project';
+import { faNum } from '../../tools/helpers';
 import { isStaticPlatform } from '../../tools/local/platforms';
 import type { PlanRecommendation } from './plan-schema';
 
@@ -18,8 +19,8 @@ export interface PlanInput {
 }
 
 export function planLabelFa(p: Plan): string {
-  const ram = p.ramMB >= 1024 ? `${+(p.ramMB / 1024).toFixed(1)} گیگابایت` : `${p.ramMB} مگابایت`;
-  return `${p.id} — ${ram} رم، ${p.cpu} هسته`;
+  const ram = p.ramMB >= 1024 ? `${faNum(p.ramMB / 1024)} گیگابایت` : `${faNum(p.ramMB, { grouping: false })} مگابایت`;
+  return `${p.id} — ${ram} رم، ${faNum(p.cpu)} هسته`;
 }
 
 const byRam = (a: Plan, b: Plan) => a.ramMB - b.ramMB || (a.hourlyPriceIRT ?? 0) - (b.hourlyPriceIRT ?? 0);

@@ -89,7 +89,7 @@ export async function executeAction(
   if (auditId !== null) finishAudit(rt.deps.db, auditId, { ok: result.ok, resultSummary: summaryOf(result) }, rt.now());
   afterAction(rt, session, def.name, input, result);
   if (opts.emitTimeline) {
-    session.emit({ type: 'tool_result', callId, tool: def.name, ok: result.ok, summary: summaryOf(result), durationMs: Date.now() - started });
+    session.emit({ type: 'tool_result', callId, tool: def.name, ok: result.ok, summary: summaryOf(result), durationMs: Date.now() - started, ...(!result.ok && result.limitation ? { limitation: true } : {}) });
     if (!result.ok && result.limitation) session.emit({ type: 'limitation', message: result.userMessageFa });
   }
   const verification =
@@ -122,7 +122,17 @@ export function policyExecutor(rt: AgentRuntime, session: AgentSession, state: T
       out = pending;
     }
     const raw = out.ok ? (out.raw ?? out.data) : undefined;
-    session.emit({ type: 'tool_result', callId: meta.toolCallId, tool: def.name, ok: out.ok, summary: summaryOf(out), durationMs: Date.now() - started, ...(raw === undefined ? {} : { raw }) });
+    session.emit({
+      type: 'tool_result',
+      callId: meta.toolCallId,
+      tool: def.name,
+      ok: out.ok,
+      summary: summaryOf(out),
+      durationMs: Date.now() - started,
+      ...(raw === undefined ? {} : { raw }),
+      ...('pendingApproval' in out ? { pendingApproval: true } : {}),
+      ...(!out.ok && 'limitation' in out && out.limitation ? { limitation: true } : {}),
+    });
     if (!out.ok && 'limitation' in out && out.limitation) session.emit({ type: 'limitation', message: out.userMessageFa });
     const forModel: Record<string, unknown> = { ...out };
     if (verification) forModel.verification = { fixed: verification.fixed, evidence: verification.evidence, nextSuggestion: verification.nextSuggestion };

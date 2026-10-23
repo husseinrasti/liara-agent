@@ -1,6 +1,6 @@
 # MCP server — use the Liara co-worker tools from Claude Desktop, Cursor or any MCP host
 
-`src/mcp/server.ts` exposes the **same tool registry** the web agent uses (34 tools, including the agent-level
+`src/mcp/server.ts` exposes the **same tool registry** the web agent uses (35 tools, including the agent-level
 `diagnose_app`, `recommend_plan` and `deploy_project`) over MCP stdio. When an LLM key is configured,
 `diagnose_app` uses it for the structured diagnosis; otherwise it returns the rule-engine diagnosis.
 Server name: `liara-agent`. All logs go to stderr; stdout carries only JSON-RPC.
@@ -36,7 +36,7 @@ The server reads `.env` from the repo root (wherever it is started from); `LIARA
 
 | Risk | Tools | What the host must send |
 |---|---|---|
-| 0 — read / local | `list_apps`, `get_app`, `get_app_logs`, `get_app_events`, `get_app_applets`, `get_app_releases`, `get_app_metrics`, `list_domains`, `check_domain`, `get_account`, `http_health_check`, `search_docs`, `analyze_project`, `build_source_archive`, `collect_evidence`, `diagnose_app`, `recommend_plan`, `set_app_watch`, `save_app_note` | nothing extra |
+| 0 — read / local | `list_apps`, `get_app`, `get_app_logs`, `get_app_events`, `get_app_applets`, `get_app_releases`, `get_app_metrics`, `list_domains`, `check_domain`, `get_account`, `http_health_check`, `search_docs`, `report_limitation`, `analyze_project`, `build_source_archive`, `collect_evidence`, `diagnose_app`, `recommend_plan`, `set_app_watch`, `save_app_note` | nothing extra |
 | 1 — confirm | `create_app`, `upload_source`, `deploy_release`, `deploy_project`, `rollback_release`, `restart_app`, `update_envs`, `add_domain`, `enable_ssl` | `"confirm": true` after the user approved |
 | 2 — dangerous | `resize_app`, `scale_app`, `delete_app`, `delete_domain`, `resize_disk`, `exec_shell` | `"confirmAppName": "<appName>"` typed by the user |
 

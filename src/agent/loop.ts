@@ -157,7 +157,7 @@ export async function runDeclinedNarration(rt: AgentRuntime, session: AgentSessi
   await runTurn(
     rt,
     session,
-    `[system] The user declined ${approval.tool}; nothing was changed. Acknowledge it in one short Persian sentence and offer one safer alternative or ask what they prefer.`,
+    `[system] The user declined ${approval.tool}; nothing was changed. Acknowledge it in one short Persian sentence and offer one safer alternative or ask what they prefer. If they ask for it again later, call the tool again: a new approval card will be shown.`,
     { synthetic: true },
   );
 }

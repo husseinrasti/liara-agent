@@ -6,14 +6,15 @@
  */
 import { getBalance } from '../liara/endpoints/account';
 import { getApp } from '../liara/endpoints/apps';
-import { appUrlFor, formatIRT } from '../tools/helpers';
+import { appUrlFor, faNum, formatIRT } from '../tools/helpers';
 import { collectMetrics, fetchEvents } from '../tools/liara/observe';
 import { healthLineFa, httpProbe, type HealthResult } from '../tools/local/http-probe';
 import { getTool, runTool } from '../tools/registry';
-import { raiseAlert, type AlertInput, type AlertRow } from './alerts';
+import { raiseAlert, resolveAlerts, type AlertInput, type AlertRow } from './alerts';
 import { pollPendingDomains } from './domain/flow';
 import { computeBaseline, getMemoryKey, setMemoryKey, watchedApps } from './memory';
 import { toolContextFor, type AgentRuntime } from './runtime';
+import { eventNameFa } from './verify';
 
 const CRASH = /OOMKill|BackOff|CrashLoop/i;
 const BASELINE_TTL_MS = 60 * 60_000;
@@ -23,8 +24,13 @@ interface AppState {
   healthFails: number;
   latencyHigh: number;
   memHigh: number;
+  /** consecutive checks with HTTP ok, no new crash events and RAM under 90% */
+  healthyTicks: number;
   lastEventsAt?: number;
 }
+
+/** Healthy checks in a row before the app's earlier alerts are closed. */
+const RESOLVE_AFTER_HEALTHY = 3;
 
 export interface WatchReport {
   appName: string;
@@ -93,7 +99,7 @@ export class Watcher {
     let health: HealthResult | null = null;
     let hourly = 0;
     if (watched) {
-      const st = this.state.get(appName) ?? { healthFails: 0, latencyHigh: 0, memHigh: 0 };
+      const st = this.state.get(appName) ?? { healthFails: 0, latencyHigh: 0, memHigh: 0, healthyTicks: 0 };
       const [h, m, e, a] = await Promise.allSettled([
         httpProbe(appUrlFor(ctx, appName), { samples: 1, timeoutMs: 10_000, fetchImpl: ctx.httpFetch, now: ctx.now }),
         collectMetrics(ctx, appName, 15),
@@ -129,18 +135,24 @@ export class Watcher {
       if (st.memHigh >= 3) {
         alerts.push({ appName, severity: 'warning', title: `مصرف رم ${appName} نزدیک سقف است`, summary: `در سه بررسی پشت‌سرهم مصرف رم بالای ۹۰٪ سقف پلن بود (${pct}٪).`, suggestedPrompt: `مصرف رم ${appName} بالاست؛ بررسی کن` });
       }
+      let crashCount = 0;
       if (e.status === 'fulfilled') {
         const since = st.lastEventsAt ?? now.getTime() - 10 * 60_000;
         const crashes = e.value.filter((ev) => CRASH.test(ev.reason ?? '') && Date.parse(ev.ts) > since);
+        crashCount = crashes.length;
         if (crashes.length) {
-          const reasons = [...new Set(crashes.map((c) => c.reason))].join('، ');
-          alerts.push({ appName, severity: 'critical', title: `کرش یا کمبود رم در ${appName}`, summary: `رویدادهای تازه: ${reasons} (${crashes.length} بار).`, suggestedPrompt: `سرویس ${appName} کرش کرده؛ بررسی کن` });
+          const reasons = [...new Set(crashes.map((c) => eventNameFa(c.reason ?? '') ?? c.reason))].join('، ');
+          alerts.push({ appName, severity: 'critical', title: `کرش یا کمبود رم در ${appName}`, summary: `رویدادهای تازه: ${reasons} (${faNum(crashes.length)} بار).`, suggestedPrompt: `سرویس ${appName} کرش کرده؛ بررسی کن` });
         }
         st.lastEventsAt = now.getTime();
       }
       if (app?.scale === 0) {
         alerts.push({ appName, severity: 'critical', title: `سرویس ${appName} خاموش است`, summary: 'سرویس خاموش شده و سایت جواب نمی‌دهد.', suggestedPrompt: `سرویس ${appName} را بررسی کن و اگر لازم است روشنش کن` });
       }
+      const healthy = Boolean(health?.ok) && crashCount === 0 && (pct === null || pct < 90) && app?.scale !== 0 && !alerts.length;
+      st.healthyTicks = healthy ? st.healthyTicks + 1 : 0;
+      // Healthy for a few checks in a row: close the app's earlier warning/critical alerts.
+      if (st.healthyTicks === RESOLVE_AFTER_HEALTHY) resolveAlerts(rt, appName);
       this.state.set(appName, st);
     }
     const raised = alerts.map((al) => raiseAlert(rt, al)).filter((r): r is AlertRow => Boolean(r));

@@ -30,7 +30,7 @@ the probe before PRD-01 is accepted.
 | update-envs | `POST /v1/projects/update-envs {project, variables}` replaces the full set (liara-cli `env:set` re-sends existing + new; `env:unset` sends the filtered set) and restarts the app. We merge client-side. **[cli]** | `endpoints/envs.ts` |
 | Public URL | `https://<app>.liara.run`; apps on the old infrastructure without `network`: `<app>.iran.liara.run`. **[cli]** | `appUrlFor` |
 | Console shell | `wss://api.iran.liara.ir/v1/exec?token=…&cmd=<cmd>&project_id=<app name>&teamID=`; after open send `{"action":"start","cols","rows"}`; output = raw frames. **[cli]** | `endpoints/shell.ts` |
-| Rollback | No native endpoint in spec or CLI. Strategy: re-release the target release's stored `sourceID`; if refused, re-upload the archive kept in `data/sources/<app>/` and release it. Releases not deployed through this agent cannot be rolled back automatically (declared as a limitation). **[spec][cli]** — probe tests sourceID reuse and candidate endpoints. | `rollback_release` |
+| Rollback | No native endpoint in spec or CLI. Strategy: re-release the target release's stored `sourceID`; if refused, re-upload the archive kept in `data/sources/<app>/` and release it. Releases not deployed through this agent cannot be rolled back automatically (declared as a limitation). A release we rolled back FROM is remembered (`badReleases` in app memory) and never chosen as a later rollback target. **[spec][cli]** — probe tests sourceID reuse and candidate endpoints. | `rollback_release` |
 | Access logs | None in the API (container stdout/stderr only). Health comes from our own HTTP probe. **[spec]** | `limits.md` |
 
 ## Environment notes

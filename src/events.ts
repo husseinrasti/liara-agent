@@ -12,6 +12,8 @@ export const DEPLOY_STAGES = ['analyze', 'create', 'envs', 'archive', 'upload', 
 export type DeployStage = (typeof DEPLOY_STAGES)[number];
 
 const payloads = {
+  /** The user's own message (stored so a reload can rebuild the thread). */
+  user_message: z.object({ text: z.string() }),
   assistant_text_delta: z.object({ delta: z.string() }),
   tool_start: z.object({ callId: z.string(), tool: z.string(), argsSummary: z.string(), risk: RiskSchema }),
   tool_result: z.object({
@@ -21,6 +23,10 @@ const payloads = {
     summary: z.string(),
     durationMs: z.number(),
     raw: z.unknown().optional(),
+    /** true when the tool is waiting for the user's approval (timeline shows ⏸). */
+    pendingApproval: z.boolean().optional(),
+    /** true when the result is a Liara API limitation (timeline shows ⓘ, not ✗). */
+    limitation: z.boolean().optional(),
   }),
   approval_required: z.object({
     approvalId: z.string(),
@@ -40,6 +46,8 @@ const payloads = {
     stage: z.enum(DEPLOY_STAGES),
     status: z.enum(['pending', 'running', 'done', 'failed']),
     detail: z.string().optional(),
+    /** Public URL, sent with the final health stage. */
+    url: z.string().optional(),
   }),
   verify_result: z.object({
     action: z.string(),

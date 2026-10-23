@@ -42,9 +42,11 @@ export interface AppMemory {
   userNotes: string[];
   watch: boolean;
   pendingDomains: PendingDomain[];
+  /** Releases this assistant rolled back from (written by db/repo markReleaseBad). */
+  badReleases: string[];
 }
 
-const DEFAULTS: AppMemory = { lastActions: [], userNotes: [], watch: false, pendingDomains: [] };
+const DEFAULTS: AppMemory = { lastActions: [], userNotes: [], watch: false, pendingDomains: [], badReleases: [] };
 
 export function getMemoryKey<K extends keyof AppMemory>(db: Db, appName: string, key: K): AppMemory[K] {
   const row = db.prepare('SELECT value FROM app_memory WHERE appName = ? AND key = ?').get(appName, key) as { value: string } | undefined;

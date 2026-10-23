@@ -23,6 +23,9 @@ describe('pickRollbackTarget', () => {
     expect(pickRollbackTarget({ releases, currentRelease: 'r3' }, 'r0')?._id).toBe('r0');
     expect(pickRollbackTarget({ releases: [releases[0]!], currentRelease: 'r3' })).toBeNull();
   });
+  it('never returns to a release we already rolled back from', () => {
+    expect(pickRollbackTarget({ releases, currentRelease: 'r3' }, undefined, ['r1'])?._id).toBe('r0');
+  });
 });
 
 describe('collect_evidence (OOM scenario over a fake Liara)', () => {

@@ -16,6 +16,7 @@ import { analyzeProjectTool } from './local/analyze-project';
 import { buildSourceArchiveTool } from './local/build-source-archive';
 import { httpHealthCheckTool } from './local/http-health-check';
 import { searchDocsTool } from './local/search-docs';
+import { reportLimitationTool } from './local/report-limitation';
 import { registerTools, registry, type ToolContext, type ToolDef } from './registry';
 
 export const ALL_TOOLS: ToolDef[] = [
@@ -29,6 +30,7 @@ export const ALL_TOOLS: ToolDef[] = [
   ...shellTools,
   httpHealthCheckTool,
   searchDocsTool,
+  reportLimitationTool,
   analyzeProjectTool,
   buildSourceArchiveTool,
   collectEvidenceTool,

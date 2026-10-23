@@ -27,9 +27,10 @@ export function expireStaleApprovals(rt: AgentRuntime): number {
 
 /**
  * Validates and resolves an approval. On success the action (or the decline
- * narration) runs in the background; await `done` to wait for it.
+ * narration) runs in the background — through `gate` when given, so it never
+ * overlaps another turn of the session; await `done` to wait for it.
  */
-export function approve(rt: AgentRuntime, input: ApproveInput): ApproveOutcome {
+export function approve(rt: AgentRuntime, input: ApproveInput, opts: { gate?: (run: () => Promise<void>) => Promise<void> } = {}): ApproveOutcome {
   const row = getApproval(rt, input.approvalId);
   if (!row) return { ok: false, code: 'not_found', messageFa: 'این درخواست تأیید پیدا نشد.' };
   if (row.status !== 'pending') return { ok: false, code: 'not_pending', messageFa: 'این درخواست قبلاً بررسی شده است.' };
@@ -50,8 +51,7 @@ export function approve(rt: AgentRuntime, input: ApproveInput): ApproveOutcome {
   rt.deps.db.prepare('UPDATE approvals SET status = ?, resolvedAt = ?, resolvedBy = ? WHERE id = ?').run(status, now.toISOString(), by, row.id);
   const session = AgentSession.load(rt, row.sessionId) ?? AgentSession.create(rt, { id: row.sessionId });
   session.emit({ type: 'approval_resolved', approvalId: row.id, approved: input.approved, by });
-  const done = (input.approved ? runApprovedAction(rt, session, row).then(() => undefined) : runDeclinedNarration(rt, session, row)).catch((err) =>
-    rt.deps.logger.error({ err: (err as Error).message }, 'post-approval turn failed'),
-  );
+  const run = () => (input.approved ? runApprovedAction(rt, session, row).then(() => undefined) : runDeclinedNarration(rt, session, row));
+  const done = (opts.gate ? opts.gate(run) : run()).catch((err) => rt.deps.logger.error({ err: (err as Error).message }, 'post-approval turn failed'));
   return { ok: true, status, done };
 }

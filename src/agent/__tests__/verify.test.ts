@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { AgentEvent } from '../../events';
 import { fakeAgent, healthyAppRoutes, TEST_NOW } from '../../test-utils/fake-agent';
 import { getTool, runTool } from '../../tools/registry';
-import { activeAlerts } from '../alerts';
+import { activeAlerts, raiseAlert } from '../alerts';
 import { getMemoryKey, setMemoryKey } from '../memory';
 import { toolContextFor } from '../runtime';
 import { AgentSession } from '../session';
@@ -38,11 +38,13 @@ async function restartAndVerify(s: ReturnType<typeof setup>) {
 }
 
 describe('verifyAction', () => {
-  it('fixed: tool checks + playbook checks pass → green strip, memory, +3 min follow-up', async () => {
+  it('fixed: tool checks + playbook checks pass → green strip, memory, +3 min follow-up, alerts closed', async () => {
     const s = setup();
+    raiseAlert(s.rt, { appName: 'shop', severity: 'critical', title: 'کرش یا کمبود رم در shop', summary: 's', suggestedPrompt: 'p' });
     const v = await restartAndVerify(s);
     expect(v.fixed).toBe(true);
-    expect(v.evidence.join(' ')).toContain('OOMKill بعد از اقدام: 0');
+    expect(activeAlerts(s.rt, 'shop')).toHaveLength(0);
+    expect(v.evidence.join(' ')).toContain('بسته شدن برنامه به‌خاطر کمبود رم بعد از اقدام: ۰ بار');
     expect(s.events.find((e) => e.type === 'verify_result')).toMatchObject({ action: 'restart_app', fixed: true });
     expect(getMemoryKey(s.rt.deps.db, 'shop', 'lastActions')[0]).toMatchObject({ tool: 'restart_app', fixed: true });
     expect(s.scheduled.map((x) => x.ms)).toContain(FOLLOW_UP_MS);
@@ -85,7 +87,7 @@ describe('runVerifyChecks', () => {
     );
     expect(res.ok).toBe(false);
     expect(res.evidence.some((e) => e.startsWith('وضعیت سایت: 502'))).toBe(true);
-    expect(res.evidence).toContain('آخرین نسخه: READY');
+    expect(res.evidence).toContain('آخرین نسخه: آماده');
     expect(res.evidence.join(' ')).toContain('داده‌ای در دسترس نیست');
   });
 });

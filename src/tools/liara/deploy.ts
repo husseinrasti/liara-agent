@@ -1,12 +1,13 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
-import { linkSourceRelease, recordSource, sourceForRelease, sourcesFor } from '../../db/repo';
+import { badReleases, linkSourceRelease, markReleaseBad, recordSource, sourceForRelease, sourcesFor } from '../../db/repo';
 import type { DeployStage } from '../../events';
 import { getReleases } from '../../liara/endpoints/apps';
 import { deployRelease, MAX_SOURCE_BYTES, RELEASE_READY, ReleaseWaitError, uploadSource, waitForRelease } from '../../liara/endpoints/deploy';
+import { dateTimeFa } from '../../liara/time';
 import type { Release, ReleasesPage } from '../../liara/types';
-import { appNameSchema, clip, limitation, ok } from '../helpers';
+import { appNameSchema, appUrlFor, clip, limitation, ok } from '../helpers';
 import { defaultPort, platformSchema } from '../local/platforms';
 import { defineTool, type ToolContext, type ToolResult, type VerifyOutcome } from '../registry';
 import { sinceOf } from './apps';
@@ -25,8 +26,8 @@ const RELEASE_STATE_FA: Record<string, string> = {
 };
 export const releaseStateFa = (s: string) => RELEASE_STATE_FA[s.toUpperCase()] ?? s;
 
-export function progress(ctx: ToolContext, stage: DeployStage, status: 'pending' | 'running' | 'done' | 'failed', detail?: string) {
-  ctx.emit?.({ type: 'deploy_progress', stage, status, detail });
+export function progress(ctx: ToolContext, stage: DeployStage, status: 'pending' | 'running' | 'done' | 'failed', detail?: string, url?: string) {
+  ctx.emit?.({ type: 'deploy_progress', stage, status, ...(detail ? { detail } : {}), ...(url ? { url } : {}) });
 }
 
 /** Archives may only be read from `<data>/` (where build_source_archive writes them). */
@@ -100,7 +101,7 @@ export async function verifyRelease(ctx: ToolContext, appName: string, before: u
   const ready = Boolean(rel && RELEASE_READY.test(rel.state));
   const health = await verifyAppHealthy(ctx, appName, sinceOf(before, ctx));
   const ok = ready && health.ok;
-  progress(ctx, 'health', ok ? 'done' : 'failed', health.evidence[health.evidence.length - 1]);
+  progress(ctx, 'health', ok ? 'done' : 'failed', health.evidence[health.evidence.length - 1], appUrlFor(ctx, appName));
   return { ok, evidence: [`وضعیت نسخه: ${rel ? releaseStateFa(rel.state) : 'پیدا نشد'}`, ...health.evidence] };
 }
 
@@ -149,13 +150,21 @@ export const deployReleaseTool = defineTool({
   verifyDelayMs: 15_000,
 });
 
-/** Latest READY release older than the current one (or `toReleaseId` if given). */
-export function pickRollbackTarget(page: Pick<ReleasesPage, 'releases' | 'currentRelease'>, toReleaseId?: string): Release | null {
+const newestFirst = (page: Pick<ReleasesPage, 'releases'>) => [...page.releases].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
+
+export function currentReleaseId(page: Pick<ReleasesPage, 'releases' | 'currentRelease'>): string | undefined {
+  return page.currentRelease ?? newestFirst(page).find((r) => RELEASE_READY.test(r.state))?._id;
+}
+
+/** Latest READY release older than the current one (or `toReleaseId`), skipping releases we already rolled back from. */
+export function pickRollbackTarget(page: Pick<ReleasesPage, 'releases' | 'currentRelease'>, toReleaseId?: string, exclude: string[] = []): Release | null {
   if (toReleaseId) return page.releases.find((r) => r._id === toReleaseId) ?? null;
-  const sorted = [...page.releases].sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
-  const currentId = page.currentRelease ?? sorted.find((r) => RELEASE_READY.test(r.state))?._id;
+  const sorted = newestFirst(page);
+  const currentId = currentReleaseId(page);
   const current = sorted.find((r) => r._id === currentId);
-  return sorted.find((r) => r._id !== currentId && RELEASE_READY.test(r.state) && (!current?.createdAt || (r.createdAt ?? '') < current.createdAt)) ?? null;
+  return (
+    sorted.find((r) => r._id !== currentId && !exclude.includes(r._id) && RELEASE_READY.test(r.state) && (!current?.createdAt || (r.createdAt ?? '') < current.createdAt)) ?? null
+  );
 }
 
 export const rollbackReleaseTool = defineTool({
@@ -168,10 +177,10 @@ export const rollbackReleaseTool = defineTool({
   category: 'deploy',
   describeFa: ({ appName }) => `برگرداندن ${appName} به نسخه‌ی قبلی`,
   consequencesFa: async ({ appName, toReleaseId }, ctx) => {
-    const target = pickRollbackTarget(await getReleases(ctx.liara, appName, 1, 20), toReleaseId);
+    const target = pickRollbackTarget(await getReleases(ctx.liara, appName, 1, 20), toReleaseId, badReleases(ctx.db, appName));
     return {
       why: target
-        ? `سرویس ${appName} به نسخه‌ی ${target.tag ?? target._id} (منتشرشده در ${target.createdAt ?? 'زمان نامشخص'}) برمی‌گردد. نسخه‌ی فعلی پاک نمی‌شود.`
+        ? `سرویس ${appName} به نسخه‌ی ${target.tag ?? target._id} (منتشرشده در ${dateTimeFa(target.createdAt) ?? 'زمان نامشخص'}) برمی‌گردد. نسخه‌ی فعلی پاک نمی‌شود.`
         : `نسخه‌ی سالم قبلی برای ${appName} پیدا نشد.`,
       reversible: true,
     };
@@ -179,8 +188,9 @@ export const rollbackReleaseTool = defineTool({
   snapshot: async (_i, ctx) => ({ at: ctx.now().toISOString() }),
   run: async ({ appName, toReleaseId }, ctx) => {
     const page = await getReleases(ctx.liara, appName, 1, 20);
-    const target = pickRollbackTarget(page, toReleaseId);
+    const target = pickRollbackTarget(page, toReleaseId, badReleases(ctx.db, appName));
     if (!target) return limitation('نسخه‌ی سالم قبلی برای برگشت پیدا نشد.', 'no READY release before the current one');
+    const from = currentReleaseId(page);
     const platform = target.type ?? target.projectType ?? page.platform ?? 'node';
     const port = target.port ?? defaultPort(platform);
     const row = sourceForRelease(ctx.db, appName, target._id);
@@ -203,6 +213,7 @@ export const rollbackReleaseTool = defineTool({
       linkSourceRelease(ctx.db, appName, newSource, releaseID);
     }
     progress(ctx, 'release', 'done');
+    if (from && from !== target._id) markReleaseBad(ctx.db, appName, from, ctx.now());
     const res = await waitAndReport(ctx, appName, releaseID);
     return res.ok ? ok({ ...res.data, rolledBackTo: target._id }, `سرویس به نسخه‌ی ${target.tag ?? target._id} برگشت.`) : res;
   },

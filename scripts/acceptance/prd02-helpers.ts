@@ -8,7 +8,7 @@ import { ROOT_DIR } from '../../src/config';
 import type { AgentEvent, EventOf } from '../../src/events';
 import { getTool, runTool } from '../../src/tools/registry';
 
-export const PERSIAN = /[؀-ۿ]/;
+export const PERSIAN = /[\u0600-\u06FF]/;
 export const FIXTURES = path.join(ROOT_DIR, 'fixtures/apps');
 
 export function sessionWithEvents(rt: AgentRuntime, appName?: string) {

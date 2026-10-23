@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { getBalance, getPlans } from '../../liara/endpoints/account';
 import { listApps } from '../../liara/endpoints/apps';
 import { cheapestBundle, monthlyTotalIRT } from '../../liara/plans';
-import { formatIRT, limitation, ok } from '../../tools/helpers';
+import { faNum, formatIRT, limitation, ok } from '../../tools/helpers';
 import { verifyRelease } from '../../tools/liara/deploy';
 import { analyzeDir } from '../../tools/local/analyze-project';
 import { platformSchema } from '../../tools/local/platforms';
@@ -39,7 +39,7 @@ export const recommendPlanTool = defineTool({
     const rec = recommendPlan(facts, plans, balance);
     if (!rec) return limitation('فهرست پلن‌های لیارا الان در دسترس نیست؛ کمی بعد دوباره امتحان می‌کنم.', 'plan catalogue empty');
     ctx.emit?.({ type: 'plan_recommendation', recommendation: rec });
-    const balanceFa = rec.balance ? (rec.balance.sufficient ? `؛ موجودی برای حدود ${rec.balance.enoughForDays} روز کافی است` : '؛ موجودی حساب برای این پلن کافی نیست') : '';
+    const balanceFa = rec.balance ? (rec.balance.sufficient ? `؛ موجودی برای حدود ${faNum(rec.balance.enoughForDays ?? 0)} روز کافی است` : '؛ موجودی حساب برای این پلن کافی نیست') : '';
     return ok(rec, `پیشنهاد: ${rec.label}، ماهانه حدود ${formatIRT(rec.totalMonthlyIRT)}${balanceFa}.`);
   },
 });
@@ -60,12 +60,12 @@ export const deployProjectTool = defineTool({
     const keys = Object.keys(i.envs ?? {});
     const steps = [
       exists ? `انتشار نسخه‌ی جدید روی سرویس موجود ${i.appName}` : `ساخت سرویس ${i.appName}${plan ? ` با پلن ${planLabelFa(plan)}` : ''}`,
-      keys.length ? `تنظیم ${keys.length} متغیر محیطی (${keys.join('، ')})` : '',
-      'بسته‌بندی و آپلود کد، ساخت (بیلد) و انتشار، و بررسی سلامت سایت',
+      keys.length ? `تنظیم ${faNum(keys.length)} متغیر محیطی (${keys.join('، ')})` : '',
+      'بسته‌بندی و ارسال کد، ساخت نسخه و انتشار آن، و بررسی سلامت سایت',
     ].filter(Boolean);
     const total = plan ? monthlyTotalIRT(plan, i.bundlePlanID ?? cheapestBundle(plan)?.id) : null;
     return {
-      why: steps.map((s, n) => `${n + 1}) ${s}`).join('؛ '),
+      why: steps.map((s, n) => `${faNum(n + 1)}. ${s}`).join('\n'),
       reversible: true,
       ...(plan ? { costNote: `هزینه‌ی تقریبی سرویس: ماهانه ${formatIRT(total)} (ساعتی از موجودی کم می‌شود).` } : {}),
     };

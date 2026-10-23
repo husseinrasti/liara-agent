@@ -45,3 +45,9 @@ export function parseTimestamp(v: unknown): Date | null {
 export function minutesBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / 60_000);
 }
+
+/** Tehran-time Persian date for user-facing text, e.g. «۳۰ مهر ۱۴۰۵، ۱۰:۱۷». */
+export function dateTimeFa(v: unknown): string | null {
+  const d = parseTimestamp(v);
+  return d ? new Intl.DateTimeFormat('fa-IR', { timeZone: 'Asia/Tehran', dateStyle: 'medium', timeStyle: 'short' }).format(d) : null;
+}

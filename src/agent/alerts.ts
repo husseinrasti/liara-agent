@@ -23,17 +23,18 @@ export interface AlertRow {
   summary: string;
   createdAt: string;
   acknowledgedAt: string | null;
+  resolvedAt?: string | null;
 }
 
 export const ALERT_DEDUPE_MS = 30 * 60_000;
 
-/** Inserts the alert unless the same rule fired for the app in the last 30 min; returns the row or null (deduped). */
+/** Inserts the alert unless the same rule fired for the app in the last 30 min (and was not resolved since); returns the row or null (deduped). */
 export function raiseAlert(rt: AgentRuntime, alert: AlertInput, extraSessionIds: string[] = []): AlertRow | null {
   const db = rt.deps.db;
   const now = rt.now();
   const title = alert.title;
   const recent = db
-    .prepare('SELECT id FROM alerts WHERE appName = ? AND title = ? AND createdAt >= ? LIMIT 1')
+    .prepare('SELECT id FROM alerts WHERE appName = ? AND title = ? AND createdAt >= ? AND resolvedAt IS NULL LIMIT 1')
     .get(alert.appName, title, new Date(now.getTime() - ALERT_DEDUPE_MS).toISOString());
   if (recent) return null;
   const row: AlertRow = { id: randomUUID(), appName: alert.appName, severity: alert.severity, title, summary: alert.summary, createdAt: now.toISOString(), acknowledgedAt: null };
@@ -54,6 +55,14 @@ export function activeAlerts(rt: AgentRuntime, appName?: string): AlertRow[] {
       ? db.prepare('SELECT * FROM alerts WHERE appName = ? AND acknowledgedAt IS NULL ORDER BY createdAt DESC LIMIT 20').all(appName)
       : db.prepare('SELECT * FROM alerts WHERE acknowledgedAt IS NULL ORDER BY createdAt DESC LIMIT 50').all()
   ) as AlertRow[];
+}
+
+/** Closes the app's open warning/critical alerts once it is healthy again (info alerts stay until read). */
+export function resolveAlerts(rt: AgentRuntime, appName: string): number {
+  const now = rt.now().toISOString();
+  return rt.deps.db
+    .prepare("UPDATE alerts SET acknowledgedAt = ?, resolvedAt = ? WHERE appName = ? AND acknowledgedAt IS NULL AND severity IN ('critical', 'warning')")
+    .run(now, now, appName).changes;
 }
 
 export function acknowledgeAlert(rt: AgentRuntime, id: string): boolean {

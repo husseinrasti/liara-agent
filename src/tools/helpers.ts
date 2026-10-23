@@ -50,7 +50,12 @@ export function ageMinutes(ctx: ToolContext, iso: string | null | undefined): nu
 
 export function formatIRT(amount: number | null | undefined): string {
   if (amount === null || amount === undefined) return 'نامشخص';
-  return `${Math.round(amount).toLocaleString('en-US')} تومان`;
+  return `${faNum(Math.round(amount))} تومان`;
+}
+
+/** Persian digits for user-facing text («۲۱۶٬۰۰۰», «۰٫۵»); grouping off for ports and ids. */
+export function faNum(n: number, opts: { grouping?: boolean; digits?: number } = {}): string {
+  return n.toLocaleString('fa-IR', { useGrouping: opts.grouping ?? true, maximumFractionDigits: opts.digits ?? 1 });
 }
 
 /** Truncates text to n chars with an ellipsis. */

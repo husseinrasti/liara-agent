@@ -13,7 +13,7 @@ import { createApp, listApps } from '../../liara/endpoints/apps';
 import { deployRelease, MAX_SOURCE_BYTES, uploadSource } from '../../liara/endpoints/deploy';
 import { updateEnvs } from '../../liara/endpoints/envs';
 import { cheapestBundle } from '../../liara/plans';
-import { appUrlFor, fail, formatIRT, limitation, ok } from '../../tools/helpers';
+import { appUrlFor, faNum, fail, formatIRT, limitation, ok } from '../../tools/helpers';
 import { progress, waitAndReport } from '../../tools/liara/deploy';
 import { analyzeDir, PLATFORM_FA } from '../../tools/local/analyze-project';
 import { buildArchive } from '../../tools/local/build-source-archive';
@@ -61,7 +61,7 @@ export async function deployProject(ctx: ToolContext, input: DeployProjectInput)
       return limitation('نوع پروژه را نتوانستم تشخیص بدهم؛ بگویید پروژه با چه زبان یا فریم‌ورکی نوشته شده است.', 'unknown platform');
     }
     const port = input.port ?? analysis.port ?? defaultPort(platform);
-    stage('analyze', 'done', `${PLATFORM_FA[platform] ?? platform}، پورت ${port}`);
+    stage('analyze', 'done', `${PLATFORM_FA[platform] ?? platform}، پورت ${faNum(port, { grouping: false })}`);
 
     stage('create', 'running');
     const exists = (await listApps(ctx.liara)).some((a) => a.project_id === input.appName);
@@ -87,7 +87,7 @@ export async function deployProject(ctx: ToolContext, input: DeployProjectInput)
     const envKeys = Object.keys(input.envs ?? {});
     stage('envs', 'running');
     if (envKeys.length) await updateEnvs(ctx.liara, input.appName, input.envs ?? {}, []);
-    stage('envs', 'done', envKeys.length ? `${envKeys.length} متغیر تنظیم شد` : 'متغیری لازم نبود');
+    stage('envs', 'done', envKeys.length ? `${faNum(envKeys.length)} متغیر تنظیم شد` : 'متغیری لازم نبود');
 
     const liaraJson = ensureLiaraJson(dir, { app: input.appName, platform, port, versions: analysis });
 
@@ -98,7 +98,7 @@ export async function deployProject(ctx: ToolContext, input: DeployProjectInput)
       stage('archive', 'failed', 'حجم بیش از ۲۵۶ مگابایت');
       return limitation('حجم کد فشرده بیشتر از ۲۵۶ مگابایت است و لیارا آن را نمی‌پذیرد؛ پوشه‌های بزرگ را در .liaraignore بگذارید.', 'archive too large');
     }
-    stage('archive', 'done', `${archive.fileCount} فایل، ${archive.sizeMB} مگابایت`);
+    stage('archive', 'done', `${faNum(archive.fileCount)} فایل، ${archive.sizeMB < 1 ? 'کمتر از ۱' : faNum(archive.sizeMB)} مگابایت`);
 
     stage('upload', 'running');
     const sourceID = await uploadSource(ctx.liara, input.appName, readFileSync(archive.archivePath), path.basename(archive.archivePath));

@@ -12,7 +12,7 @@ import { crashEventsSince } from '../tools/liara/checks';
 import { collectMetrics, fetchEvents, fetchLogs } from '../tools/liara/observe';
 import { healthLineFa, httpProbe } from '../tools/local/http-probe';
 import type { ToolContext, ToolDef, ToolResult } from '../tools/registry';
-import { raiseAlert } from './alerts';
+import { raiseAlert, resolveAlerts } from './alerts';
 import { getMemoryKey, pushAction } from './memory';
 import { getPlaybook } from './playbooks/load';
 import type { Playbook, VerifyCheck } from './playbooks/schema';
@@ -40,10 +40,25 @@ const OPS: Record<string, (a: number, b: number) => boolean> = {
 };
 
 const FIELD_FA: Record<string, string> = {
-  'memory.pctOfLimit': 'مصرف رم نسبت به سقف پلن (٪)',
-  'memory.maxMB': 'بیشینه‌ی رم (MB)',
+  'memory.pctOfLimit': 'مصرف رم نسبت به سقف پلن',
+  'memory.lastPctOfLimit': 'مصرف فعلی رم نسبت به سقف پلن',
+  'memory.maxMB': 'بیشینه‌ی رم (مگابایت)',
   'cpu.max': 'بیشینه‌ی پردازنده',
+  'cpu.last': 'مصرف فعلی پردازنده',
 };
+const PCT_FIELDS = /pct|cpu\./i;
+
+/** Plain-Persian names for the event / log patterns the playbooks verify against. */
+const MATCH_FA: [RegExp, string][] = [
+  [/OOMKill/, 'بسته شدن برنامه به‌خاطر کمبود رم'],
+  [/BackOff|CrashLoop/, 'کرش و راه‌اندازی پشت‌سرهم'],
+  [/ECONNREFUSED|ETIMEDOUT/, 'خطای اتصال به دیتابیس'],
+  [/ENOSPC/, 'پر شدن دیسک'],
+  [/is not set/, 'خطای متغیر محیطی تعریف‌نشده'],
+];
+/** Plain-Persian name for an event reason or verify pattern (undefined when unknown). */
+export const eventNameFa = (m: string) => MATCH_FA.find(([re]) => re.test(m))?.[1];
+const numFa = (n: number) => new Intl.NumberFormat('fa-IR', { maximumFractionDigits: 1 }).format(n);
 
 function pathGet(obj: unknown, p: string): unknown {
   return p.split('.').reduce<unknown>((cur, k) => (cur && typeof cur === 'object' ? (cur as Record<string, unknown>)[k] : undefined), obj);
@@ -59,12 +74,12 @@ export async function runVerifyChecks(ctx: ToolContext, appName: string, checks:
         const from = new Date(Math.max(since.getTime(), minutesAgo(ctx, c.withinMinutes).getTime()));
         const re = new RegExp(c.match, 'i');
         const n = (await fetchEvents(ctx, appName, c.withinMinutes + 5)).filter((e) => new Date(e.ts) >= from && re.test(`${e.reason ?? ''} ${e.message}`)).length;
-        evidence.push(`رویداد ${c.match} بعد از اقدام: ${n}`);
+        evidence.push(`${eventNameFa(c.match) ?? `رویداد ${c.match}`} بعد از اقدام: ${numFa(n)} بار`);
         if (n > 0) ok = false;
       } else if (c.kind === 'no_log') {
         const re = new RegExp(c.match, 'i');
         const n = (await fetchLogs(ctx, appName, c.withinMinutes)).filter((l) => new Date(l.t) >= since && re.test(l.msg)).length;
-        evidence.push(`خطوط لاگ شبیه «${c.match}» بعد از اقدام: ${n}`);
+        evidence.push(eventNameFa(c.match) ? `لاگ‌های ${eventNameFa(c.match)} بعد از اقدام: ${numFa(n)} خط` : `خطوط لاگ شبیه «${c.match}» بعد از اقدام: ${numFa(n)}`);
         if (n > 0) ok = false;
       } else if (c.kind === 'health') {
         const h = await httpProbe(appUrlFor(ctx, appName), { samples: 2, timeoutMs: 8000, fetchImpl: ctx.httpFetch, now: ctx.now });
@@ -76,16 +91,16 @@ export async function runVerifyChecks(ctx: ToolContext, appName: string, checks:
         if (typeof v !== 'number') {
           evidence.push(`${FIELD_FA[c.field] ?? c.field}: داده‌ای در دسترس نیست`);
         } else {
-          evidence.push(`${FIELD_FA[c.field] ?? c.field}: ${v}`);
+          evidence.push(`${FIELD_FA[c.field] ?? c.field}: ${numFa(v)}${PCT_FIELDS.test(c.field) ? '٪' : ''}`);
           if (!OPS[c.op]!(v, c.value)) ok = false;
         }
       } else if (c.kind === 'release_ready') {
         const latest = (await getReleases(ctx.liara, appName, 1, 1)).releases[0];
-        evidence.push(`آخرین نسخه: ${latest?.state ?? 'نامشخص'}`);
+        evidence.push(`آخرین نسخه: ${latest ? (RELEASE_READY.test(latest.state) ? 'آماده' : latest.state) : 'نامشخص'}`);
         if (!latest || !RELEASE_READY.test(latest.state)) ok = false;
       }
     } catch {
-      evidence.push(`بررسی ${c.kind} انجام نشد`);
+      evidence.push('یکی از بررسی‌ها انجام نشد (داده در دسترس نبود)');
     }
   }
   return { ok, evidence };
@@ -132,6 +147,7 @@ export async function verifyAction(rt: AgentRuntime, session: AgentSession, v: V
   session.emit({ type: 'verify_result', action: v.def.name, fixed, evidence, ...(nextSuggestion ? { nextSuggestion } : {}) });
   if (v.auditId !== null) recordVerify(rt.deps.db, v.auditId, { ok: fixed, evidence });
   if (appName) pushAction(rt.deps.db, appName, { tool: v.def.name, ts: rt.now().toISOString(), ok: true, fixed }, rt.now());
+  if (fixed && appName) resolveAlerts(rt, appName);
   const turnedOff = v.def.name === 'scale_app' && (v.input as { on?: boolean })?.on === false;
   if (fixed && appName && RESTART_TYPE.has(v.def.name) && !turnedOff) scheduleFollowUp(rt, session, appName, v.def.name, actedAt);
   return { action: v.def.name, fixed, evidence, ...(nextSuggestion ? { nextSuggestion } : {}) };

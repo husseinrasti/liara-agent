@@ -34,6 +34,24 @@ describe('Watcher', () => {
     expect((events.find((e) => e.type === 'alert') as { suggestedPrompt: string }).suggestedPrompt).toContain('بررسی کن');
   });
 
+  it('closes alerts after three healthy checks, and alerts again if the problem returns', async () => {
+    let status = 502;
+    const { rt, watcher } = watched({ httpStatus: () => status });
+    await watcher.tick();
+    await watcher.tick();
+    expect(activeAlerts(rt, 'shop')).toHaveLength(1);
+    status = 200;
+    await watcher.tick();
+    await watcher.tick();
+    expect(activeAlerts(rt, 'shop')).toHaveLength(1);
+    await watcher.tick();
+    expect(activeAlerts(rt, 'shop')).toHaveLength(0);
+    status = 502;
+    await watcher.tick();
+    await watcher.tick();
+    expect(activeAlerts(rt, 'shop')).toMatchObject([{ severity: 'critical', title: 'سایت shop پاسخ نمی‌دهد' }]);
+  });
+
   it('alerts immediately on new OOMKilled/BackOff events, once', async () => {
     const oom = { body: { data: [{ metaData: {}, values: [[ns(TEST_NOW.getTime() - 120_000), JSON.stringify({ reason: 'OOMKilled', message: 'killed' })]] }] } };
     const { rt, watcher } = watched({}, { 'GET /v1/projects/shop/events': oom });

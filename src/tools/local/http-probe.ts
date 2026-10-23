@@ -92,5 +92,6 @@ export async function waitForHealthy(
 
 export function healthLineFa(h: HealthResult): string {
   if (h.status === 0) return `سایت پاسخ نداد (${h.error ?? 'بدون پاسخ'})`;
-  return `وضعیت سایت: ${h.status}${h.latencyMs ? ` (${h.latencyMs.avg}ms)` : ''}`;
+  const fa = (n: number) => n.toLocaleString('fa-IR');
+  return `وضعیت سایت: ${h.status} (${h.ok ? 'سالم' : 'خطا'}${h.latencyMs ? `، ${fa(h.latencyMs.avg)} میلی‌ثانیه` : ''})`;
 }

@@ -34,14 +34,14 @@ export async function verifyAppHealthy(ctx: ToolContext, appName: string, since:
   ]);
   if (applets.status === 'fulfilled') {
     const a = applets.value;
-    evidence.push(`نمونه‌های در حال اجرا: ${a.running} از ${a.applets.length}${a.allRunning ? '' : ` (${a.states.join('، ')})`}`);
+    evidence.push(`نمونه‌های در حال اجرا: ${a.running.toLocaleString('fa-IR')} از ${a.applets.length.toLocaleString('fa-IR')}${a.allRunning ? '' : ` (${a.states.join('، ')})`}`);
     if (!a.allRunning) ok = false;
   } else {
     evidence.push('وضعیت نمونه‌ها (applets) قابل دریافت نبود');
   }
   if (crashes.status === 'fulfilled') {
     const reasons = [...new Set(crashes.value.map((e) => e.reason))].join('، ');
-    evidence.push(`رویدادهای خرابی بعد از اقدام: ${crashes.value.length}${reasons ? ` (${reasons})` : ''}`);
+    evidence.push(`رویدادهای خرابی بعد از اقدام: ${crashes.value.length.toLocaleString('fa-IR')} بار${reasons ? ` (${reasons})` : ''}`);
     if (crashes.value.length > 0) ok = false;
   }
   if (health.status === 'fulfilled') {

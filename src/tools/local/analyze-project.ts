@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { z } from 'zod';
-import { limitation, ok } from '../helpers';
+import { faNum, limitation, ok } from '../helpers';
 import { defineTool } from '../registry';
 import { detectCommands, detectPlatform, detectPort, detectVersions, readJson, type DetectedPlatform, type ProjectSnapshot } from './analyze/detect';
 import { detectDatabase, detectDiskNeed, detectNotableDeps, scanEnvKeys, type DatabaseKind, type EnvKey } from './analyze/env-scan';
@@ -113,8 +113,8 @@ export function analyzeDir(dir: string): ProjectAnalysis {
 export function analysisSummaryFa(a: ProjectAnalysis): string {
   const required = a.envKeys.filter((k) => k.required).map((k) => k.key);
   const parts = [`پروژه‌ی ${PLATFORM_FA[a.platform] ?? a.platform}`];
-  if (a.port) parts.push(`پورت ${a.port}`);
-  if (required.length) parts.push(`${required.length} متغیر محیطی لازم دارد: ${required.slice(0, 6).join('، ')}${required.length > 6 ? '…' : ''}`);
+  if (a.port) parts.push(`پورت ${faNum(a.port, { grouping: false })}`);
+  if (required.length) parts.push(`${faNum(required.length)} متغیر محیطی لازم دارد: ${required.slice(0, 6).join('، ')}${required.length > 6 ? '…' : ''}`);
   if (a.needsDatabase) parts.push(`به پایگاه داده‌ی ${a.needsDatabase} نیاز دارد`);
   if (a.needsDisk) parts.push('به دیسک ماندگار (برای ذخیره‌ی فایل) نیاز دارد');
   return `${parts.join('، ')}.`;

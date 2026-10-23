@@ -33,13 +33,14 @@ export function fakeAgent(opts: {
   fast?: LanguageModel;
   smart?: LanguageModel;
   autoApprove?: boolean;
-  httpStatus?: number;
+  /** status of the app's public URL; a function lets a test change it between checks */
+  httpStatus?: number | (() => number);
   now?: () => Date;
 }): FakeAgent {
   const calls: FakeCall[] = [];
   const scheduled: FakeAgent['scheduled'] = [];
   const deps = { config: testConfig(), liara: fakeClient(opts.routes ?? {}, calls), db: openDb(':memory:'), logger: silentLogger };
-  const status = opts.httpStatus ?? 200;
+  const statusOf = typeof opts.httpStatus === 'function' ? opts.httpStatus : () => (opts.httpStatus as number | undefined) ?? 200;
   const rt = createAgentRuntime({
     deps,
     models: { ...(opts.fast ? { fast: opts.fast } : {}), ...(opts.smart ? { smart: opts.smart } : {}) },
@@ -47,7 +48,10 @@ export function fakeAgent(opts: {
     now: opts.now ?? (() => TEST_NOW),
     sleep: async () => {},
     schedule: (fn, ms) => void scheduled.push({ fn, ms }),
-    httpFetch: (async () => new Response(status === 200 ? 'ok' : 'error', { status })) as unknown as typeof fetch,
+    httpFetch: (async () => {
+      const status = statusOf();
+      return new Response(status === 200 ? 'ok' : 'error', { status });
+    }) as unknown as typeof fetch,
   });
   return { rt, calls, scheduled };
 }
