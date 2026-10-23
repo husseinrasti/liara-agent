@@ -5,7 +5,8 @@
 عوضشان کنید.
 
 **قبل از ضبط:** `npm run chaos -- none --deploy` (یک نسخه‌ی سالمِ ثبت‌شده برای برگشت)، پوشه‌ی `~/my-shop` آماده،
-مرورگر روی ۱۲۵٪، پایش خودکار برنامه‌ی دمو روشن.
+مرورگر روی ۱۲۵٪، پایش خودکار برنامه‌ی دمو روشن. اگر رابط کاربری با Docker اجرا شده، دستورهای `npm run chaos` را با
+`docker exec liara-agent …` بزنید (مثلاً `docker exec liara-agent npm run chaos -- leak --deploy --app my-shop`).
 
 ---
 
